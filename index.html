@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arch Diagram</title>
+<title>Arch TOGAF</title>
 <style>
   :root {
     --ui-bg: #ffffff;
@@ -45,7 +45,89 @@
 
   /* ---------- main ---------- */
   main { flex: 1; display: flex; min-height: 0; }
+  #center { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   #stage { position: relative; flex: 1; overflow: hidden; outline: none; }
+
+  /* view tabs above the canvas */
+  #viewTabs { display: flex; align-items: flex-end; gap: 2px; padding: 5px 8px 0; background: var(--ui-bg2); border-bottom: 1px solid var(--ui-border); overflow-x: auto; overflow-y: hidden; flex: none; scrollbar-width: none; }
+  #viewTabs .vtab { display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent; border-bottom: 0; background: transparent; border-radius: 7px 7px 0 0; padding: 5px 10px; cursor: pointer; white-space: nowrap; max-width: 220px; color: #4b5563; }
+  #viewTabs .vtab:hover { background: rgba(255,255,255,.6); }
+  #viewTabs .vtab.on { background: var(--ui-bg); border-color: var(--ui-border); color: var(--ui-text); margin-bottom: -1px; padding-bottom: 6px; }
+  #viewTabs .vtab .nm { overflow: hidden; text-overflow: ellipsis; }
+  #viewTabs .vtab .ph { font-size: 10px; font-weight: 700; color: #fff; background: #64748b; border-radius: 4px; padding: 0 4px; }
+  #viewTabs .vadd { border: 0; background: transparent; cursor: pointer; padding: 4px 9px; border-radius: 6px; font-size: 15px; color: var(--ui-muted); }
+  #viewTabs .vadd:hover { background: rgba(255,255,255,.7); color: var(--ui-text); }
+  #viewTabs input { border: 1px solid var(--accent); border-radius: 5px; padding: 1px 4px; width: 150px; }
+
+  /* left panel: palette, model browser, ADM */
+  #left { width: 252px; flex: none; border-right: 1px solid var(--ui-border); background: var(--ui-bg); display: flex; flex-direction: column; min-height: 0; }
+  #leftTabs { display: flex; gap: 2px; margin: 8px 10px 0; padding: 2px; background: var(--ui-bg2); border-radius: 8px; flex: none; }
+  #leftTabs button { flex: 1; border: 0; background: transparent; border-radius: 6px; padding: 5px 0; cursor: pointer; color: #4b5563; }
+  #leftTabs button.on { background: var(--ui-bg); color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  #left .panel { padding: 8px 10px 40px; }
+  .pal-layer { margin: 10px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ui-muted); display: flex; align-items: center; gap: 6px; }
+  .pal-layer i { width: 10px; height: 10px; border-radius: 3px; border: 1px solid rgba(0,0,0,.2); }
+  .pal-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; }
+  .pal-item { height: 32px; border: 1px solid rgba(0,0,0,.14); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; color: #1f2937; }
+  .pal-item:hover { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .pal-item.cur { box-shadow: inset 0 0 0 2px var(--accent); }
+  .pal-item svg { width: 18px; height: 18px; }
+  .pal-note { font-size: 12px; color: var(--ui-muted); margin: 6px 0; }
+  .search { width: 100%; padding: 5px 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-bg); margin: 2px 0 6px; }
+  .tree-h { display: flex; align-items: center; gap: 6px; margin: 8px 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ui-muted); cursor: pointer; user-select: none; }
+  .tree-h .cnt { margin-left: auto; text-transform: none; }
+  .tree-h i { width: 10px; height: 10px; border-radius: 3px; border: 1px solid rgba(0,0,0,.2); }
+  .tree-i { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 6px; cursor: pointer; font-size: 12.5px; }
+  .tree-i:hover { background: var(--ui-bg2); }
+  .tree-i.on { background: var(--accent-soft); }
+  .tree-i svg { width: 15px; height: 15px; flex: none; color: #374151; }
+  .tree-i .rico svg { width: 30px; height: 12px; }
+  .tree-i .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tree-i .nm.unused { font-style: italic; color: var(--ui-muted); }
+  .tree-i .uses { font-size: 11px; color: var(--ui-muted); }
+  .adm-wheel { display: block; margin: 4px auto 0; width: 100%; max-width: 240px; height: auto; }
+  .adm-wheel .ph { cursor: pointer; }
+  .adm-wheel .ph:hover circle { stroke: var(--accent); stroke-width: 2.5; }
+  .adm-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--ui-muted); margin: 2px 0 6px; justify-content: center; }
+  .adm-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; }
+  .chk-list label { display: flex; gap: 6px; align-items: flex-start; font-size: 12px; margin: 3px 0; cursor: pointer; }
+  .chk-list label input { margin-top: 2px; }
+  .chk-list label.done span { color: var(--ui-muted); text-decoration: line-through; }
+  .chk-list .grp { font-size: 11px; color: var(--ui-muted); margin: 8px 0 2px; font-weight: 600; }
+  .vlink { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; border: 1px solid var(--ui-border); background: var(--ui-bg); border-radius: 7px; padding: 5px 8px; margin: 4px 0; cursor: pointer; font-size: 12px; }
+  .vlink:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .rel-item { display: flex; align-items: center; gap: 5px; font-size: 12px; padding: 3px 4px; border-radius: 6px; cursor: pointer; }
+  .rel-item:hover { background: var(--ui-bg2); }
+  .rel-item .rt { color: var(--ui-muted); white-space: nowrap; }
+  .rel-item .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .typetag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 2px 8px 2px 4px; border-radius: 6px; border: 1px solid rgba(0,0,0,.14); }
+  .typetag svg { width: 15px; height: 15px; }
+  .prop-row { display: grid; grid-template-columns: 1fr 1.3fr auto; gap: 4px; margin: 3px 0; }
+  .prop-row input { min-width: 0; padding: 3px 6px; border: 1px solid var(--ui-border); border-radius: 6px; background: var(--ui-bg); }
+  .prop-row button { border: 0; background: transparent; color: var(--ui-muted); cursor: pointer; }
+  .warn { font-size: 12px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 7px; padding: 5px 8px; margin: 6px 0; }
+
+  /* relationship picker */
+  #relPicker { position: absolute; z-index: 8; background: var(--ui-bg); border: 1px solid var(--ui-border); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 5px; min-width: 210px; }
+  #relPicker .rp-h { font-size: 11px; color: var(--ui-muted); padding: 3px 7px 5px; }
+  #relPicker button { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: transparent; padding: 5px 7px; border-radius: 6px; cursor: pointer; text-align: left; }
+  #relPicker button:hover, #relPicker button.def { background: var(--accent-soft); }
+  #relPicker button.bad { color: var(--ui-muted); }
+  #relPicker .sep { height: 1px; background: var(--ui-border); margin: 4px 0; }
+
+  /* catalogs dialog */
+  #catDlg { width: min(1200px, calc(100vw - 32px)); }
+  #catDlg .dlg-body { max-height: 72vh; }
+  .cat-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--ui-border); }
+  .cat-bar select, .cat-bar input { padding: 4px 6px; border: 1px solid var(--ui-border); border-radius: 6px; background: var(--ui-bg); }
+  table.cat { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  table.cat th, table.cat td { border-bottom: 1px solid var(--ui-bg2); padding: 5px 7px; text-align: left; vertical-align: top; }
+  table.cat th { position: sticky; top: 0; background: var(--ui-bg); color: var(--ui-muted); font-weight: 600; z-index: 1; }
+  table.cat tr.click:hover td { background: var(--accent-soft); cursor: pointer; }
+  table.cat.mx { width: auto; }
+  table.mx th.rot { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; vertical-align: bottom; max-height: 160px; }
+  table.mx td.c { text-align: center; color: #1f2937; border-left: 1px solid var(--ui-bg2); }
+  table.mx td.c.on { background: #eef2ff; font-weight: 600; }
   #svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; user-select: none; }
   #svg .block { cursor: move; }
   #svg.shift .block, #svg.shift .conn { cursor: crosshair; }
@@ -67,6 +149,9 @@
   .bc .bt { min-width: 0; }
   .bc .bi { flex: none; display: flex; align-items: center; justify-content: center; line-height: 1; }
   .bc .bi-corner { position: absolute; left: 6px; top: 6px; }
+  .bc .bi-tr { position: absolute; right: 5px; top: 4px; opacity: .85; }
+  .bc.el { padding: 6px 22px; }
+  .bc .ty { font-size: .75em; opacity: .65; font-style: italic; }
   .bc p { margin: 0; }
 
   /* rich text editor overlay */
@@ -87,6 +172,7 @@
   #edBar button:hover { background: var(--ui-bg2); }
   #edBar select { height: 26px; border: 1px solid var(--ui-border); border-radius: 5px; background: var(--ui-bg); }
   #edBar input[type=color] { margin: 0 3px; }
+  #edBar.plain > :not([data-ed=done]) { display: none; }
   #edBar .sep { width: 1px; height: 18px; background: var(--ui-border); margin: 0 3px; }
 
   #hint {
@@ -210,24 +296,28 @@
   table.keys td { padding: 4px 6px; border-bottom: 1px solid var(--ui-bg2); vertical-align: top; }
   table.keys td:first-child { white-space: nowrap; width: 40%; }
 
+  @media (max-width: 1100px) { #left { width: 210px; } .pal-grid { grid-template-columns: repeat(5, 1fr); } }
   @media (max-width: 760px) {
     #side { width: 220px; }
+    #left { display: none; }
     .tbtn .lbl { display: none; }
   }
 </style>
 </head>
 <body>
 <header id="toolbar">
-  <div class="brand">Arch Diagram<small id="verLabel"></small></div>
+  <div class="brand">Arch TOGAF<small id="verLabel"></small></div>
   <div class="tgroup">
     <button class="tbtn" data-cmd="new" title="New diagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 12v6M9 15h6"/></svg><span class="lbl">New</span></button>
     <button class="tbtn" data-cmd="open" title="Open JSON file (Ctrl/Cmd+O)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="lbl">Open</span></button>
     <button class="tbtn" data-cmd="save" title="Save (Ctrl/Cmd+S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span class="lbl">Save</span></button>
     <button class="tbtn" data-cmd="saveAs" title="Save as… (Ctrl/Cmd+Shift+S)"><span class="lbl">Save as…</span></button>
-    <button class="tbtn" data-cmd="exportSvg" title="Export as SVG image"><span class="lbl">Export SVG</span></button>
+    <button class="tbtn" data-cmd="exportSvg" title="Export the current view as an SVG image"><span class="lbl">Export SVG</span></button>
   </div>
   <div class="tgroup">
-    <button class="tbtn" data-cmd="addBlock" title="Add block (or double-click canvas)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 9v6M9 12h6"/></svg><span class="lbl">Block</span></button>
+    <button class="tbtn" data-cmd="catalogs" title="Catalogs and matrices generated from the model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 9v11"/></svg><span class="lbl">Catalogs</span></button>
+  </div>
+  <div class="tgroup">
     <button class="tbtn" data-cmd="undo" title="Undo (Ctrl/Cmd+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
     <button class="tbtn" data-cmd="redo" title="Redo (Ctrl/Cmd+Shift+Z)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
     <button class="tbtn" data-cmd="delete" title="Delete selection (Del)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
@@ -247,13 +337,21 @@
 </header>
 
 <main>
+  <aside id="left">
+    <div id="leftTabs"><button data-ltab="palette" class="on">Palette</button><button data-ltab="model">Model</button><button data-ltab="adm">ADM</button></div>
+    <div id="palettePanel" class="panel"></div>
+    <div id="modelPanel" class="panel" hidden></div>
+    <div id="admPanel" class="panel" hidden></div>
+  </aside>
+  <div id="center">
+  <div id="viewTabs"></div>
   <div id="stage" tabindex="-1">
     <svg id="svg" xmlns="http://www.w3.org/2000/svg">
       <defs id="defs"></defs>
       <g id="viewport">
         <g id="gridLayer"></g>
-        <g id="linkLayer"></g>
         <g id="blockLayer"></g>
+        <g id="linkLayer"></g>
         <g id="connLayer"></g>
         <g id="flowLayer"></g>
         <g id="overlayLayer"></g>
@@ -279,9 +377,11 @@
       <button data-ed="removeFormat" title="Clear formatting">⌫</button>
       <button data-ed="done" title="Done (Esc / Ctrl+Enter)">✓</button>
     </div>
-    <div id="hint">Double-click canvas: new block · Shift+drag from a block: new link · Double-click block: edit title</div>
+    <div id="hint"></div>
+    <div id="relPicker" hidden></div>
     <div id="toast"></div>
     <div id="recBar" hidden><span class="dot"></span><span id="recText"></span><button data-fact="stop">Done</button></div>
+  </div>
   </div>
   <aside id="side">
     <div id="sideTabs"><button data-tab="props" class="on">Properties</button><button data-tab="flows">Flows<span class="cnt" id="flowCnt"></span></button></div>
@@ -305,6 +405,12 @@
   <div class="dlg-body" id="helpBody"></div>
 </dialog>
 
+<dialog id="catDlg">
+  <div class="dlg-head">Catalogs &amp; matrices <button class="btn" data-close>✕</button></div>
+  <div class="cat-bar" id="catBar"></div>
+  <div class="dlg-body" id="catBody"></div>
+</dialog>
+
 <input type="file" id="fileInput" accept=".json,application/json" hidden>
 
 <script>
@@ -314,10 +420,11 @@
    Application info (also written into every saved JSON file)
    ===================================================================== */
 const APP_INFO = {
-  name: 'arch-diagram',
-  version: '1.0.0',
-  github: 'https://github.com/avchaykin/arch-diagram'
+  name: 'arch-togaf',
+  version: '0.1.0',
+  github: 'https://github.com/avchaykin/arch-togaf'
 };
+const STORE = 'archtogaf.';
 const FORMAT_VERSION = 1;
 
 const DEFAULT_SETTINGS = {
@@ -332,7 +439,8 @@ const DEFAULT_SETTINGS = {
   link: {
     route: 'poly', color: '#4a5568', width: 1.5, style: 'solid', startEnd: 'none', endEnd: 'arrow',
     startConn: 'none', endConn: 'none', connColor: '#4a5568', connSize: 8, labelColor: '#374151'
-  }
+  },
+  model: { showType: false, showGlyph: true, autoRelations: true, strictRelations: true }
 };
 
 /* =====================================================================
@@ -375,6 +483,305 @@ const ICONS = {
 };
 
 /* =====================================================================
+   ArchiMate 3.2 / TOGAF metamodel
+   ===================================================================== */
+const LAYERS = {
+  strategy: { name: 'Strategy', color: '#f5deaa' },
+  business: { name: 'Business', color: '#ffffb5' },
+  application: { name: 'Application', color: '#b5ffff' },
+  technology: { name: 'Technology', color: '#c9e7b7' },
+  physical: { name: 'Physical', color: '#c9e7b7' },
+  motivation: { name: 'Motivation', color: '#ccccff' },
+  implementation: { name: 'Implementation & Migration', color: '#ffe0e0' },
+  other: { name: 'Other', color: '#ffffff' }
+};
+/* type glyphs, drawn in the top-right corner of an element (24x24, stroke based) */
+const GLYPHS = {
+  actor: '<circle cx="12" cy="5" r="3"/><path d="M12 8v7M6 11h12M12 15l-5 6M12 15l5 6"/>',
+  role: '<path d="M8 6h9a3.5 6 0 0 1 0 12H8"/><ellipse cx="8" cy="12" rx="3.5" ry="6"/>',
+  collaboration: '<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>',
+  interface: '<circle cx="15" cy="12" r="5"/><path d="M2 12h8"/>',
+  process: '<path d="M3 9h11V5l7 7-7 7v-4H3z"/>',
+  function: '<path d="M5 10l7-6 7 6v11l-7-5-7 5z"/>',
+  interaction: '<path d="M10 4a8 8 0 0 0 0 16zM14 4a8 8 0 0 1 0 16z"/>',
+  event: '<path d="M3 6h12a6 6 0 0 1 0 12H3l4-6z"/>',
+  service: '<rect x="2" y="7" width="20" height="10" rx="5"/>',
+  object: '<rect x="3" y="5" width="18" height="14"/><path d="M3 9h18"/>',
+  contract: '<rect x="3" y="5" width="18" height="14"/><path d="M3 9h18M3 14h18"/>',
+  representation: '<path d="M3 5h18v12c-3-2.5-6-2.5-9 0s-6 2.5-9 0z"/><path d="M3 9h18"/>',
+  product: '<rect x="3" y="5" width="18" height="14"/><path d="M3 9h9V5"/>',
+  component: '<rect x="7" y="3" width="14" height="18"/><rect x="4" y="7" width="6" height="3"/><rect x="4" y="14" width="6" height="3"/>',
+  node: '<path d="M3 8l4-4h14v13l-4 4H3z"/><path d="M3 8h14v13M17 8l4-4"/>',
+  device: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M6 20h12l-2-4H8z"/>',
+  systemSoftware: '<circle cx="10" cy="14" r="7"/><path d="M9 7.1A7 7 0 0 1 21 11a7 7 0 0 1-4.2 6.4"/>',
+  network: '<circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="7" r="2"/><path d="M7 17h10M10 7h4M5.5 15l2-6M18.5 15l-2-6"/>',
+  path: '<path d="M4 12h16" stroke-dasharray="3 2"/><path d="M7 8l-4 4 4 4M17 8l4 4-4 4"/>',
+  artifact: '<path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5"/>',
+  equipment: '<circle cx="9" cy="14" r="4.5"/><circle cx="17" cy="7" r="3"/><path d="M9 7.5v2M9 18.5v2M2.5 14h2M13.5 14h2"/>',
+  facility: '<path d="M3 21V10l5 3v-3l5 3V4h4v17zM3 21h18V4h-4"/>',
+  distribution: '<path d="M3 9h18M3 15h18M6 6 3 9l3 3M18 12l3 3-3 3"/>',
+  material: '<path d="M7 4h10l5 8-5 8H7l-5-8z"/>',
+  resource: '<rect x="3" y="7" width="16" height="10" rx="3"/><path d="M19 10h2v4h-2M7.5 10v4M11 10v4M14.5 10v4"/>',
+  capability: '<path d="M3 21h18V3h-6v6H9v6H3z"/><path d="M9 21v-6h6M15 15V9h6M15 21v-6"/>',
+  valueStream: '<path d="M2 6h14l6 6-6 6H2l6-6z"/>',
+  courseOfAction: '<circle cx="14" cy="10" r="7"/><circle cx="14" cy="10" r="2.5"/><path d="M2 22l8-8M2 17v5h5"/>',
+  driver: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19"/>',
+  assessment: '<circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 21 21"/>',
+  goal: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  outcome: '<circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="M11 13l9-9M15 3.5h5.5V9"/>',
+  principle: '<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M12 7v7M12 17.5v.2"/>',
+  requirement: '<path d="M7 6h15l-5 12H2z"/>',
+  constraint: '<path d="M7 6h15l-5 12H2zM11 6l-5 12"/>',
+  meaning: '<path d="M7 19h10a4.5 4.5 0 0 0 .6-8.96A6 6 0 0 0 6.2 9.6 4.7 4.7 0 0 0 7 19z"/>',
+  value: '<ellipse cx="12" cy="12" rx="10" ry="6"/>',
+  workPackage: '<path d="M9 6h7a6 6 0 0 1 0 12H5"/><path d="M8 15l-3 3 3 3"/>',
+  deliverable: '<path d="M4 4h16v13c-2.7-2.5-5.3-2.5-8 0s-5.3 2.5-8 0z"/>',
+  plateau: '<path d="M7 6h15M4 12h15M2 18h15"/>',
+  gap: '<circle cx="12" cy="12" r="7"/><path d="M2 10h20M2 14h20"/>',
+  location: '<path d="M12 22s7-7 7-12a7 7 0 0 0-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+  grouping: '<path d="M3 9V4h8v5M3 9h18v11H3z" stroke-dasharray="3 2"/>',
+  note: '<path d="M4 3h11l5 5v13H4z"/><path d="M15 3v5h5M8 12h8M8 16h6"/>'
+};
+/* aspect: active | interface | behavior | event | service | passive | motivation | composite */
+const ELEMENT_TYPES = {};
+[
+  ['strategy', [['resource', 'Resource', 'active', 'resource'], ['capability', 'Capability', 'behavior', 'capability'],
+    ['valueStream', 'Value Stream', 'behavior', 'valueStream'], ['courseOfAction', 'Course of Action', 'behavior', 'courseOfAction']]],
+  ['business', [['businessActor', 'Business Actor', 'active', 'actor'], ['businessRole', 'Business Role', 'active', 'role'],
+    ['businessCollaboration', 'Business Collaboration', 'active', 'collaboration'], ['businessInterface', 'Business Interface', 'interface', 'interface'],
+    ['businessProcess', 'Business Process', 'behavior', 'process'], ['businessFunction', 'Business Function', 'behavior', 'function'],
+    ['businessInteraction', 'Business Interaction', 'behavior', 'interaction'], ['businessEvent', 'Business Event', 'event', 'event'],
+    ['businessService', 'Business Service', 'service', 'service'], ['businessObject', 'Business Object', 'passive', 'object'],
+    ['contract', 'Contract', 'passive', 'contract'], ['representation', 'Representation', 'passive', 'representation'],
+    ['product', 'Product', 'composite', 'product']]],
+  ['application', [['applicationComponent', 'Application Component', 'active', 'component'],
+    ['applicationCollaboration', 'Application Collaboration', 'active', 'collaboration'], ['applicationInterface', 'Application Interface', 'interface', 'interface'],
+    ['applicationFunction', 'Application Function', 'behavior', 'function'], ['applicationInteraction', 'Application Interaction', 'behavior', 'interaction'],
+    ['applicationProcess', 'Application Process', 'behavior', 'process'], ['applicationEvent', 'Application Event', 'event', 'event'],
+    ['applicationService', 'Application Service', 'service', 'service'], ['dataObject', 'Data Object', 'passive', 'object']]],
+  ['technology', [['node', 'Node', 'active', 'node'], ['device', 'Device', 'active', 'device'], ['systemSoftware', 'System Software', 'active', 'systemSoftware'],
+    ['technologyCollaboration', 'Technology Collaboration', 'active', 'collaboration'], ['technologyInterface', 'Technology Interface', 'interface', 'interface'],
+    ['path', 'Path', 'active', 'path'], ['communicationNetwork', 'Communication Network', 'active', 'network'],
+    ['technologyFunction', 'Technology Function', 'behavior', 'function'], ['technologyProcess', 'Technology Process', 'behavior', 'process'],
+    ['technologyInteraction', 'Technology Interaction', 'behavior', 'interaction'], ['technologyEvent', 'Technology Event', 'event', 'event'],
+    ['technologyService', 'Technology Service', 'service', 'service'], ['artifact', 'Artifact', 'passive', 'artifact']]],
+  ['physical', [['equipment', 'Equipment', 'active', 'equipment'], ['facility', 'Facility', 'active', 'facility'],
+    ['distributionNetwork', 'Distribution Network', 'active', 'distribution'], ['material', 'Material', 'passive', 'material']]],
+  ['motivation', [['stakeholder', 'Stakeholder', 'motivation', 'role'], ['driver', 'Driver', 'motivation', 'driver'],
+    ['assessment', 'Assessment', 'motivation', 'assessment'], ['goal', 'Goal', 'motivation', 'goal'], ['outcome', 'Outcome', 'motivation', 'outcome'],
+    ['principle', 'Principle', 'motivation', 'principle'], ['requirement', 'Requirement', 'motivation', 'requirement'],
+    ['constraint', 'Constraint', 'motivation', 'constraint'], ['meaning', 'Meaning', 'motivation', 'meaning'], ['value', 'Value', 'motivation', 'value']]],
+  ['implementation', [['workPackage', 'Work Package', 'behavior', 'workPackage'], ['deliverable', 'Deliverable', 'passive', 'deliverable'],
+    ['implementationEvent', 'Implementation Event', 'event', 'event'], ['plateau', 'Plateau', 'composite', 'plateau'], ['gap', 'Gap', 'passive', 'gap']]],
+  ['other', [['location', 'Location', 'composite', 'location'], ['grouping', 'Grouping', 'composite', 'grouping']]]
+].forEach(([layer, list]) => list.forEach(([id, name, aspect, glyph]) => { ELEMENT_TYPES[id] = { id, name, layer, aspect, glyph }; }));
+const TYPE_COLOR = { plateau: '#e0ffe0', gap: '#e0ffe0', location: '#fbb875', grouping: '#ffffff' };
+const typeColor = t => TYPE_COLOR[t] || LAYERS[ELEMENT_TYPES[t]?.layer]?.color || '#ffffff';
+const typeName = t => ELEMENT_TYPES[t]?.name || t;
+/* default shape per aspect: behavior is rounded, motivation has cut corners, grouping a tab */
+function typeShape(t) {
+  const T = ELEMENT_TYPES[t];
+  if (!T) return { shape: 'rect', radius: 8 };
+  if (t === 'grouping') return { shape: 'tab', radius: 0 };
+  if (T.aspect === 'motivation') return { shape: 'bevel', radius: 0 };
+  if (['behavior', 'event', 'service'].includes(T.aspect)) return { shape: 'rect', radius: 12 };
+  return { shape: 'rect', radius: 0 };
+}
+const glyphSvg = (g, size = 18, color = 'currentColor') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${GLYPHS[g] || ''}</svg>`;
+const typeGlyph = (t, size, color) => glyphSvg(ELEMENT_TYPES[t]?.glyph || 'note', size, color);
+
+/* relationship types and their standard notation */
+const REL_TYPES = {
+  composition: { name: 'Composition', abbr: 'C', style: 'solid', start: 'diamond-filled', end: 'none' },
+  aggregation: { name: 'Aggregation', abbr: 'Ag', style: 'solid', start: 'diamond', end: 'none' },
+  assignment: { name: 'Assignment', abbr: 'As', style: 'solid', start: 'circle-filled', end: 'arrow' },
+  realization: { name: 'Realization', abbr: 'R', style: 'dotted', start: 'none', end: 'triangle' },
+  serving: { name: 'Serving', abbr: 'S', style: 'solid', start: 'none', end: 'open' },
+  access: { name: 'Access', abbr: 'Ac', style: 'dotted', start: 'none', end: 'open-narrow' },
+  influence: { name: 'Influence', abbr: 'I', style: 'dashed', start: 'none', end: 'open' },
+  triggering: { name: 'Triggering', abbr: 'T', style: 'solid', start: 'none', end: 'arrow' },
+  flow: { name: 'Flow', abbr: 'F', style: 'dashed', start: 'none', end: 'arrow' },
+  specialization: { name: 'Specialization', abbr: 'Sp', style: 'solid', start: 'none', end: 'triangle' },
+  association: { name: 'Association', abbr: 'As·', style: 'solid', start: 'none', end: 'none' }
+};
+const REL_ORDER = Object.keys(REL_TYPES);
+const ACCESS_TYPES = [['write', 'Write'], ['read', 'Read'], ['readwrite', 'Read/write'], ['access', 'Access (unspecified)']];
+function relNotation(r) {
+  const n = Object.assign({}, REL_TYPES[r.type] || REL_TYPES.association);
+  if (r.type === 'access') {
+    const a = r.accessType || 'write';
+    n.start = a === 'read' || a === 'readwrite' ? 'open-narrow' : 'none';
+    n.end = a === 'write' || a === 'readwrite' ? 'open-narrow' : 'none';
+  }
+  if (r.type === 'association' && r.directed) n.end = 'open-narrow';
+  return n;
+}
+function relIcon(type) {
+  const n = REL_TYPES[type];
+  const dash = n.style === 'dashed' ? ' stroke-dasharray="4 3"' : n.style === 'dotted' ? ' stroke-dasharray="1.5 2.5"' : '';
+  const mk = (m, x, flip) => {
+    const M = MARKERS[m];
+    if (!M) return '';
+    const fill = M.fill === 'solid' ? 'currentColor' : M.fill === 'bg' ? 'var(--ui-bg)' : 'none';
+    return `<path d="${M.d}" transform="translate(${x},8)${flip ? ' scale(-.8,.8)' : ' scale(.8)'}" fill="${fill}" stroke-width="1.3"/>`;
+  };
+  return `<svg viewBox="0 0 40 16" width="40" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 8h32"${dash}/>${mk(n.start, 3, true)}${mk(n.end, 37, false)}</svg>`;
+}
+
+/* Simplified ArchiMate 3.2 relationship rules (a subset of the full table) */
+const CORE_LAYERS = new Set(['business', 'application', 'technology', 'physical']);
+const LRANK = { physical: 0, technology: 0, application: 1, business: 2 };
+const isBehT = T => ['behavior', 'event', 'service'].includes(T.aspect);
+const isActT = T => T.aspect === 'active' || T.aspect === 'interface';
+const isPasT = T => T.aspect === 'passive';
+function validRelations(st, tt) {
+  const S = ELEMENT_TYPES[st], T = ELEMENT_TYPES[tt];
+  const out = new Set(['association']);
+  if (!S || !T) return out;
+  const core = X => CORE_LAYERS.has(X.layer);
+  const sameL = S.layer === T.layer || (core(S) && core(T) && LRANK[S.layer] === LRANK[T.layer]);
+  const lower = core(S) && core(T) && LRANK[S.layer] < LRANK[T.layer];
+  const add = (...r) => r.forEach(x => out.add(x));
+  if (st === tt) add('specialization');
+  // structural
+  if (st === tt || (sameL && S.aspect === T.aspect && S.aspect !== 'motivation') || st === 'grouping' ||
+    (sameL && core(S) && S.aspect === 'active' && T.aspect === 'interface') ||
+    (st === 'product' && core(T) && T.aspect !== 'active' && T.aspect !== 'interface')) add('composition', 'aggregation');
+  if (st === 'location' || (st === 'plateau' && tt !== 'plateau')) add('aggregation');
+  if (st === 'location' && T.layer === 'physical') add('composition');
+  // assignment
+  if (sameL && core(S) && isActT(S) && isBehT(T)) add('assignment');
+  if (sameL && core(S) && S.aspect === 'active' && T.aspect === 'service') add('realization'); // derived: active → behavior → service
+  if (st === 'businessActor' && tt === 'businessRole') add('assignment');
+  if (core(S) && LRANK[S.layer] === 0 && S.aspect === 'active' && tt === 'artifact') add('assignment');
+  if (['businessActor', 'businessRole'].includes(st) && tt === 'workPackage') add('assignment');
+  if (st === 'resource' && ['capability', 'valueStream'].includes(tt)) add('assignment');
+  // realization
+  if (isBehT(S) && S.aspect !== 'event' && T.aspect === 'service' && (sameL || lower)) add('realization');
+  if (lower && ((isBehT(S) && isBehT(T)) || (isPasT(S) && isPasT(T)) || (S.aspect === 'active' && T.aspect === 'active'))) add('realization');
+  if (st === 'artifact' && ['applicationComponent', 'systemSoftware', 'dataObject'].includes(tt)) add('realization');
+  if (st === 'representation' && tt === 'businessObject') add('realization');
+  if ((core(S) || S.layer === 'strategy' || S.layer === 'implementation') && ['requirement', 'constraint', 'principle', 'goal', 'outcome'].includes(tt)) add('realization');
+  if (S.layer === 'motivation' && T.layer === 'motivation') {
+    const inf = x => !['stakeholder', 'meaning', 'value'].includes(x);
+    if (inf(st) && inf(tt)) add('influence');
+    if (['requirement', 'constraint', 'principle', 'outcome', 'goal'].includes(st) && ['goal', 'outcome', 'principle', 'requirement'].includes(tt) && st !== tt) add('realization');
+  }
+  if (core(S) && T.layer === 'motivation' && !['stakeholder', 'driver', 'assessment', 'meaning', 'value'].includes(tt)) add('influence');
+  if (core(S) && T.layer === 'strategy' && tt !== 'resource') add('realization');
+  if (core(S) && (isActT(S) || isPasT(S)) && tt === 'resource') add('realization');
+  if (['capability', 'resource'].includes(st) && tt === 'courseOfAction') add('realization');
+  if (st === 'workPackage' && (tt === 'deliverable' || core(T))) add('realization');
+  if (st === 'deliverable' && (core(T) || tt === 'plateau' || T.layer === 'strategy')) add('realization');
+  // serving
+  if (core(S) && core(T) && (isBehT(S) || isActT(S)) && (isBehT(T) || isActT(T)) && LRANK[S.layer] <= LRANK[T.layer]) add('serving');
+  if (['capability', 'valueStream'].includes(st) && ['capability', 'valueStream'].includes(tt)) add('serving', 'flow', 'triggering');
+  // access
+  if (core(S) && (isBehT(S) || isActT(S)) && core(T) && isPasT(T)) add('access');
+  // dynamic
+  if (core(S) && core(T) && (isBehT(S) || isActT(S)) && (isBehT(T) || isActT(T))) add('triggering', 'flow');
+  const impl = x => ['workPackage', 'implementationEvent'].includes(x);
+  if ((impl(st) && impl(tt)) || (st === 'plateau' && tt === 'plateau')) add('triggering');
+  return out;
+}
+function suggestRelation(st, tt, valid) {
+  const S = ELEMENT_TYPES[st], T = ELEMENT_TYPES[tt];
+  if (!S || !T) return 'association';
+  const pick = (...c) => c.find(x => valid.has(x));
+  return (isActT(S) && isBehT(T) && pick('assignment')) ||
+    (st === 'businessActor' && tt === 'businessRole' && pick('assignment')) ||
+    (T.aspect === 'service' && pick('realization')) ||
+    ((S.aspect === 'service' || S.aspect === 'interface') && pick('serving')) ||
+    (isPasT(T) && pick('access')) ||
+    (T.layer === 'motivation' && S.layer !== 'motivation' && pick('realization', 'influence')) ||
+    (S.layer === 'motivation' && T.layer === 'motivation' && pick('realization', 'influence')) ||
+    (['grouping', 'location', 'plateau', 'product'].includes(st) && pick('aggregation', 'composition')) ||
+    (st === tt && pick('composition')) ||
+    (isBehT(S) && isBehT(T) && pick('triggering', 'flow')) ||
+    pick('realization', 'serving', 'composition', 'triggering') || 'association';
+}
+
+/* Viewpoints: which element types a view offers in its palette */
+const VIEWPOINTS = {
+  none: { name: 'None (all elements)' },
+  layered: { name: 'Layered', layers: ['business', 'application', 'technology', 'physical'] },
+  motivation: { name: 'Motivation', layers: ['motivation'] },
+  stakeholder: { name: 'Stakeholder', types: ['stakeholder', 'driver', 'assessment', 'goal', 'outcome'] },
+  goalRealization: { name: 'Goal realization', types: ['goal', 'outcome', 'principle', 'requirement', 'constraint'] },
+  requirementsRealization: { name: 'Requirements realization', layers: ['business', 'application', 'technology', 'physical'], types: ['goal', 'outcome', 'principle', 'requirement', 'constraint', 'capability', 'valueStream', 'resource', 'courseOfAction'] },
+  strategy: { name: 'Strategy', types: ['resource', 'capability', 'valueStream', 'courseOfAction', 'outcome', 'goal', 'driver'] },
+  capabilityMap: { name: 'Capability map', types: ['capability', 'resource', 'outcome', 'goal'] },
+  valueStream: { name: 'Value stream', types: ['valueStream', 'capability', 'stakeholder', 'businessActor', 'businessRole', 'outcome', 'value'] },
+  organization: { name: 'Organization', types: ['businessActor', 'businessRole', 'businessCollaboration', 'businessInterface'] },
+  business: { name: 'Business process cooperation', layers: ['business'], types: ['applicationService', 'applicationComponent'] },
+  product: { name: 'Product', types: ['product', 'businessService', 'contract', 'value', 'businessActor', 'businessRole', 'businessProcess', 'businessInterface', 'applicationService', 'technologyService'] },
+  information: { name: 'Information structure', types: ['businessObject', 'contract', 'representation', 'dataObject', 'artifact'] },
+  applicationCooperation: { name: 'Application cooperation', layers: ['application'] },
+  applicationUsage: { name: 'Application usage', layers: ['business', 'application'] },
+  technology: { name: 'Technology', layers: ['technology', 'physical'] },
+  technologyUsage: { name: 'Technology usage', layers: ['application', 'technology'] },
+  physical: { name: 'Physical', layers: ['physical'], types: ['node', 'device', 'path', 'communicationNetwork'] },
+  project: { name: 'Project', types: ['workPackage', 'deliverable', 'implementationEvent', 'businessActor', 'businessRole', 'goal', 'outcome'] },
+  migration: { name: 'Migration', types: ['plateau', 'gap'] },
+  implementationMigration: { name: 'Implementation and migration', layers: ['implementation'], types: ['requirement', 'constraint', 'goal', 'outcome', 'businessActor', 'businessRole', 'applicationComponent', 'node'] }
+};
+function viewpointAllows(vp, t) {
+  const V = VIEWPOINTS[vp];
+  if (!V || (!V.layers && !V.types) || t === 'location' || t === 'grouping') return true;
+  return (V.layers || []).includes(ELEMENT_TYPES[t]?.layer) || (V.types || []).includes(t);
+}
+
+/* TOGAF ADM phases: objectives, typical artifacts and deliverables */
+const ADM_STATUS = {
+  none: { name: 'Not started', color: '#e2e8f0', text: '#334155' },
+  progress: { name: 'In progress', color: '#f59e0b', text: '#ffffff' },
+  done: { name: 'Completed', color: '#16a34a', text: '#ffffff' },
+  skip: { name: 'Not applicable', color: '#94a3b8', text: '#ffffff' }
+};
+const ADM_PHASES = [
+  { id: 'prelim', code: 'P', name: 'Preliminary', vp: 'motivation',
+    objectives: 'Determine the Architecture Capability the organization needs and establish it: scope, tailored framework, principles, governance and tools.',
+    items: { 'Artifacts': ['Principles catalog'],
+      'Deliverables': ['Organizational Model for Enterprise Architecture', 'Tailored Architecture Framework', 'Architecture Principles', 'Request for Architecture Work'] } },
+  { id: 'A', code: 'A', name: 'Architecture Vision', vp: 'stakeholder',
+    objectives: 'Develop a high-level vision of the capabilities and business value to deliver, identify stakeholders and their concerns, and obtain approval for a Statement of Architecture Work.',
+    items: { 'Artifacts': ['Stakeholder Map matrix', 'Value Chain diagram', 'Solution Concept diagram', 'Business Model diagram', 'Business Capability Map', 'Value Stream Map'],
+      'Deliverables': ['Approved Statement of Architecture Work', 'Refined business principles, goals and drivers', 'Architecture Vision', 'Draft Architecture Definition Document', 'Communications Plan'] } },
+  { id: 'B', code: 'B', name: 'Business Architecture', vp: 'business',
+    objectives: 'Develop the Target Business Architecture that describes how the enterprise operates to reach its goals, and identify candidate roadmap components from the gaps between Baseline and Target.',
+    items: { 'Catalogs': ['Organization/Actor catalog', 'Driver/Goal/Objective catalog', 'Role catalog', 'Business Service/Function catalog', 'Location catalog', 'Process/Event/Control/Product catalog', 'Contract/Measure catalog'],
+      'Matrices': ['Business Interaction matrix', 'Actor/Role matrix'],
+      'Diagrams': ['Business Footprint diagram', 'Business Service/Information diagram', 'Functional Decomposition diagram', 'Product Lifecycle diagram', 'Goal/Objective/Service diagram', 'Business Use-Case diagram', 'Organization Decomposition diagram', 'Process Flow diagram', 'Event diagram'],
+      'Deliverables': ['Architecture Definition Document (Business)', 'Architecture Requirements Specification (Business)', 'Business components of the Architecture Roadmap'] } },
+  { id: 'C', code: 'C', name: 'Information Systems Architectures', vp: 'applicationCooperation',
+    objectives: 'Develop the Target Data and Application Architectures that enable the Business Architecture and the Architecture Vision, and identify the gaps with the Baseline.',
+    items: { 'Data': ['Data Entity/Data Component catalog', 'Data Entity/Business Function matrix', 'Application/Data matrix', 'Conceptual Data diagram', 'Logical Data diagram', 'Data Dissemination diagram', 'Data Security diagram', 'Data Migration diagram', 'Data Lifecycle diagram'],
+      'Application': ['Application Portfolio catalog', 'Interface catalog', 'Application/Organization matrix', 'Role/Application matrix', 'Application/Function matrix', 'Application Interaction matrix', 'Application Communication diagram', 'Application and User Location diagram', 'Application Use-Case diagram', 'Process/Application Realization diagram', 'Software Distribution diagram'],
+      'Deliverables': ['Architecture Definition Document (Data, Application)', 'Architecture Requirements Specification (Data, Application)', 'Information Systems components of the Architecture Roadmap'] } },
+  { id: 'D', code: 'D', name: 'Technology Architecture', vp: 'technology',
+    objectives: 'Develop the Target Technology Architecture that enables the application and data components and the Architecture Vision, and identify the gaps with the Baseline.',
+    items: { 'Artifacts': ['Technology Standards catalog', 'Technology Portfolio catalog', 'Application/Technology matrix', 'Environments and Locations diagram', 'Platform Decomposition diagram', 'Processing diagram', 'Networked Computing/Hardware diagram', 'Network and Communications diagram'],
+      'Deliverables': ['Architecture Definition Document (Technology)', 'Architecture Requirements Specification (Technology)', 'Technology components of the Architecture Roadmap'] } },
+  { id: 'E', code: 'E', name: 'Opportunities and Solutions', vp: 'implementationMigration',
+    objectives: 'Generate the initial Architecture Roadmap from the gaps found in Phases B to D, decide whether Transition Architectures are needed, and define the delivery vehicles.',
+    items: { 'Artifacts': ['Project Context diagram', 'Benefits diagram', 'Consolidated Gaps, Solutions and Dependencies matrix'],
+      'Deliverables': ['Capability Assessment', 'Architecture Roadmap (initial)', 'Transition Architectures', 'Implementation and Migration Plan (initial)'] } },
+  { id: 'F', code: 'F', name: 'Migration Planning', vp: 'migration',
+    objectives: 'Finalize the Architecture Roadmap and the Implementation and Migration Plan, aligned with the enterprise change portfolio.',
+    items: { 'Deliverables': ['Implementation and Migration Plan (final)', 'Architecture Definition Document (final)', 'Architecture Requirements Specification (final)', 'Architecture Roadmap (final)', 'Transition Architectures (final)', 'Implementation Governance Model', 'Change Requests'] } },
+  { id: 'G', code: 'G', name: 'Implementation Governance', vp: 'project',
+    objectives: 'Make sure the implementation projects conform to the Target Architecture, through architecture contracts and compliance reviews.',
+    items: { 'Deliverables': ['Architecture Contract (signed)', 'Compliance Assessments', 'Change Requests', 'Architecture-compliant solutions deployed'] } },
+  { id: 'H', code: 'H', name: 'Architecture Change Management', vp: 'none',
+    objectives: 'Keep the architecture fit for purpose: monitor technology and business changes, manage changes to the architecture, and start a new cycle when needed.',
+    items: { 'Deliverables': ['Architecture updates', 'Changes to the framework and principles', 'New Request for Architecture Work', 'Updated Statement of Architecture Work', 'Updated Architecture Contract', 'Updated Compliance Assessments'] } },
+  { id: 'RM', code: 'RM', name: 'Requirements Management', vp: 'requirementsRealization',
+    objectives: 'Manage architecture requirements throughout the ADM cycle: identify, store and feed them into and out of the relevant phases.',
+    items: { 'Artifacts': ['Requirements catalog'], 'Deliverables': ['Requirements Impact Assessment', 'Architecture Requirements Specification (updated)'] } }
+];
+const admPhase = id => ADM_PHASES.find(p => p.id === id);
+
+/* =====================================================================
    Link end markers (drawn pointing to +x, tip at the origin)
    fill: solid | bg | none ; inset: how much the line is shortened
    ===================================================================== */
@@ -410,7 +817,8 @@ const OPTS = {
   align: [['left', 'Left'], ['center', 'Center'], ['right', 'Right']],
   valign: [['top', 'Top'], ['middle', 'Middle'], ['bottom', 'Bottom']],
   iconPos: [['left', 'Left of title'], ['top', 'Above title'], ['right', 'Right of title'], ['corner', 'Top-left corner']],
-  side: [['auto', 'Auto'], ['top', 'Top'], ['right', 'Right'], ['bottom', 'Bottom'], ['left', 'Left']]
+  side: [['auto', 'Auto'], ['top', 'Top'], ['right', 'Right'], ['bottom', 'Bottom'], ['left', 'Left']],
+  shape: [['rect', 'Rectangle'], ['bevel', 'Cut corners'], ['tab', 'Tab (grouping)'], ['note', 'Note (folded corner)']]
 };
 const SIDES = { top: { nx: 0, ny: -1 }, right: { nx: 1, ny: 0 }, bottom: { nx: 0, ny: 1 }, left: { nx: -1, ny: 0 } };
 
@@ -505,7 +913,11 @@ function storageSet(key, val) { try { localStorage.setItem(key, val); } catch (e
    State
    ===================================================================== */
 let settings = loadUserDefaults();
-let doc = { blocks: [], links: [], flows: [] };
+let model = emptyModel();        // the repository: elements + relationships
+let views = [];                  // diagrams over the model
+let doc = { id: '', blocks: [], links: [], flows: [] }; // the active view
+let adm = { phases: {} };        // ADM cycle state
+let viewports = new Map();       // view id -> pan/zoom
 let view = { x: 0, y: 0, k: 1 };
 let sel = new Set();
 let undoStack = [], redoStack = [];
@@ -518,6 +930,8 @@ let inspSnap = null;
 let hoverConn = null;
 let hoverFlow = null;
 let sideTab = 'props', activeFlow = null, recording = false, hoverStep = -1, flowSnap = null;
+let leftTab = 'palette', modelSel = null, curType = 'businessActor', admSel = 'A', relPick = null;
+const collapsed = new Set(['relations']);
 
 const svg = $('#svg'), stage = $('#stage'), viewport = $('#viewport');
 const gridLayer = $('#gridLayer'), linkLayer = $('#linkLayer'), blockLayer = $('#blockLayer');
@@ -525,26 +939,93 @@ const flowLayer = $('#flowLayer'), flowsPanel = $('#flowsPanel');
 const connLayer = $('#connLayer'), overlayLayer = $('#overlayLayer'), defs = $('#defs');
 const inspector = $('#inspector');
 const edWrap = $('#edWrap'), edInner = $('#edInner'), edBar = $('#edBar');
+const palettePanel = $('#palettePanel'), modelPanel = $('#modelPanel'), admPanel = $('#admPanel');
 
 function loadUserDefaults() {
   let saved = null;
-  try { saved = JSON.parse(storageGet('archdiagram.defaults') || 'null'); } catch (e) { saved = null; }
+  try { saved = JSON.parse(storageGet(STORE + 'defaults') || 'null'); } catch (e) { saved = null; }
   return deepMerge(DEFAULT_SETTINGS, saved);
 }
 
 /* =====================================================================
-   Model
+   Model: elements and relationships (repository)
    ===================================================================== */
+function emptyModel() { return { name: 'Enterprise architecture', description: '', elements: [], relationships: [] }; }
+const elById = id => model.elements.find(e => e.id === id);
+const relById = id => model.relationships.find(r => r.id === id);
+function newElement(type, props = {}) {
+  return Object.assign({ id: uid('e'), type, name: typeName(type), documentation: '', properties: [] }, props);
+}
+function newRelationship(type, source, target, props = {}) {
+  const r = Object.assign({ id: uid('r'), type, source, target, name: '', documentation: '', properties: [] }, props);
+  if (type === 'access' && !r.accessType) r.accessType = 'write';
+  return r;
+}
+function normProps(arr) {
+  return (Array.isArray(arr) ? arr : []).filter(p => p && typeof p === 'object').slice(0, 200)
+    .map(p => ({ key: String(p.key ?? '').slice(0, 120), value: String(p.value ?? '').slice(0, 2000) }));
+}
+function normElement(o) {
+  const type = ELEMENT_TYPES[o.type] ? o.type : 'grouping';
+  return {
+    id: String(o.id || uid('e')), type, name: String(o.name ?? '').slice(0, 300),
+    documentation: String(o.documentation ?? '').slice(0, 20000), properties: normProps(o.properties)
+  };
+}
+function normRelationship(o) {
+  const r = {
+    id: String(o.id || uid('r')), type: REL_TYPES[o.type] ? o.type : 'association',
+    source: String(o.source ?? ''), target: String(o.target ?? ''), name: String(o.name ?? '').slice(0, 300),
+    documentation: String(o.documentation ?? '').slice(0, 20000), properties: normProps(o.properties)
+  };
+  if (r.type === 'access') r.accessType = oneOf(o.accessType, optVals(ACCESS_TYPES), 'write');
+  if (r.type === 'association') r.directed = !!o.directed;
+  return r;
+}
+function normalizeModel(o) {
+  o = o && typeof o === 'object' ? o : {};
+  const m = emptyModel();
+  m.name = String(o.name ?? m.name).slice(0, 200);
+  m.description = String(o.description ?? '').slice(0, 20000);
+  const seen = new Set();
+  m.elements = (Array.isArray(o.elements) ? o.elements : []).filter(x => x && typeof x === 'object').map(normElement);
+  for (const e of m.elements) { if (seen.has(e.id)) e.id = uid('e'); seen.add(e.id); }
+  const ids = new Set(m.elements.map(e => e.id));
+  m.relationships = (Array.isArray(o.relationships) ? o.relationships : []).filter(x => x && typeof x === 'object').map(normRelationship)
+    .filter(r => ids.has(r.source) && ids.has(r.target));
+  for (const r of m.relationships) { if (seen.has(r.id)) r.id = uid('r'); seen.add(r.id); }
+  return m;
+}
+function relValid(r) {
+  const s = elById(r.source), t = elById(r.target);
+  return !s || !t || validRelations(s.type, t.type).has(r.type);
+}
+
+/* =====================================================================
+   Views: blocks reference elements, links reference relationships
+   ===================================================================== */
+const SHAPES = ['rect', 'bevel', 'tab', 'note'];
 function newBlock(x, y, props = {}) {
   const d = settings.block;
   return Object.assign({
     id: uid('b'), x, y, w: snapSize(d.w), h: snapSize(d.h),
-    title: 'Block',
+    title: 'Note', shape: 'rect',
     fill: d.fill, stroke: d.stroke, strokeWidth: d.strokeWidth, strokeStyle: d.strokeStyle, radius: d.radius,
     textColor: d.textColor, fontSize: d.fontSize, align: d.align, valign: d.valign,
     icon: d.icon, iconColor: d.iconColor, iconSize: d.iconSize, iconPos: d.iconPos,
     badge: '', badgeColor: d.badgeColor, badgeTextColor: d.badgeTextColor, highlight: false
   }, props);
+}
+/* a block that shows a model element, styled after its type */
+function elementBlock(el, x, y, props = {}) {
+  const s = typeShape(el.type), D = settings.block;
+  const p = { element: el.id, title: '', fill: typeColor(el.type), stroke: '#4a5568', shape: s.shape, radius: s.radius, icon: '' };
+  if (el.type === 'grouping') Object.assign(p, { w: snapSize(D.w * 2), h: snapSize(D.h * 2.6), strokeStyle: 'dashed', align: 'left', valign: 'top' });
+  if (el.type === 'location') Object.assign(p, { valign: 'top' });
+  return newBlock(x, y, Object.assign(p, props));
+}
+function noteBlock(x, y, props = {}) {
+  return newBlock(x, y, Object.assign({ title: 'Note', shape: 'note', fill: '#fffbea', stroke: '#a3a3a3', radius: 0, align: 'left', valign: 'top' }, props));
 }
 function newLink(from, to, props = {}) {
   const d = settings.link;
@@ -556,6 +1037,19 @@ function newLink(from, to, props = {}) {
     label: '', labelColor: d.labelColor
   }, props);
 }
+const relLink = (r, fromBlock, toBlock) => newLink({ block: fromBlock, side: 'auto' }, { block: toBlock, side: 'auto' }, { rel: r.id });
+/* the link as drawn: relationship links take their notation and label from the relationship */
+function effLink(l) {
+  const r = l.rel && relById(l.rel);
+  if (!r) return l;
+  const n = relNotation(r);
+  return Object.assign({}, l, { style: n.style, startEnd: n.start, endEnd: n.end, label: r.name || '' });
+}
+function blockName(b) {
+  if (!b) return '(deleted)';
+  if (b.element) { const e = elById(b.element); return e ? (e.name || 'Untitled ' + typeName(e.type)) : '(missing element)'; }
+  return htmlToText(b.title) || 'Untitled note';
+}
 
 function normBlock(o) {
   const b = newBlock(0, 0);
@@ -564,6 +1058,8 @@ function normBlock(o) {
   for (const k of ['x', 'y']) b[k] = num(o[k], 0);
   b.w = Math.max(10, num(o.w, D.w)); b.h = Math.max(10, num(o.h, D.h));
   b.title = sanitizeHtml(o.title ?? '');
+  if (o.element) b.element = String(o.element);
+  b.shape = oneOf(o.shape, SHAPES, 'rect');
   for (const k of ['fill', 'stroke', 'textColor', 'iconColor', 'badgeColor', 'badgeTextColor']) b[k] = safeColor(o[k], D[k]);
   for (const k of ['strokeWidth', 'radius', 'fontSize', 'iconSize']) b[k] = Math.max(0, num(o[k], D[k]));
   b.strokeStyle = oneOf(o.strokeStyle, optVals(OPTS.strokeStyle), D.strokeStyle);
@@ -591,6 +1087,7 @@ function normLink(o) {
   const l = newLink(normEnd(o.from), normEnd(o.to));
   const D = settings.link;
   l.id = String(o.id || uid('l'));
+  if (o.rel) l.rel = String(o.rel);
   l.route = oneOf(o.route, optVals(OPTS.route), D.route);
   l.style = oneOf(o.style, optVals(OPTS.lineStyle), D.style);
   l.startEnd = oneOf(o.startEnd, Object.keys(MARKERS), D.startEnd);
@@ -622,14 +1119,24 @@ function normFlow(o, ids) {
   return f;
 }
 /* drop steps whose element no longer exists */
-function pruneFlows() {
-  const ids = new Set([...doc.blocks.map(b => b.id), ...doc.links.map(l => l.id)]);
-  for (const f of doc.flows) f.steps = f.steps.filter(st => ids.has(st.ref));
+function pruneFlows(v = doc) {
+  const ids = new Set([...v.blocks.map(b => b.id), ...v.links.map(l => l.id)]);
+  for (const f of v.flows) f.steps = f.steps.filter(st => ids.has(st.ref));
 }
 
-function normalizeDoc(data) {
+function newView(props = {}) {
+  return Object.assign({ id: uid('v'), name: 'View ' + (views.length + 1), viewpoint: 'none', phase: '', description: '', blocks: [], links: [], flows: [] }, props);
+}
+function normalizeView(data, seen) {
+  const v = newView();
+  v.id = String(data.id || v.id);
+  if (seen.has(v.id)) v.id = uid('v');
+  seen.add(v.id);
+  v.name = String(data.name ?? 'View').slice(0, 200);
+  v.viewpoint = VIEWPOINTS[data.viewpoint] ? data.viewpoint : 'none';
+  v.phase = admPhase(data.phase) ? data.phase : '';
+  v.description = String(data.description ?? '').slice(0, 20000);
   const blocks = Array.isArray(data.blocks) ? data.blocks.filter(o => o && typeof o === 'object').map(normBlock) : [];
-  const seen = new Set();
   for (const b of blocks) { if (seen.has(b.id)) b.id = uid('b'); seen.add(b.id); }
   const ids = new Set(blocks.map(b => b.id));
   const links = (Array.isArray(data.links) ? data.links : []).filter(o => o && typeof o === 'object').map(normLink);
@@ -641,7 +1148,63 @@ function normalizeDoc(data) {
   const elems = new Set([...ids, ...links.map(l => l.id)]);
   const flows = (Array.isArray(data.flows) ? data.flows : []).filter(o => o && typeof o === 'object').map(o => normFlow(o, elems));
   for (const f of flows) { if (seen.has(f.id)) f.id = uid('f'); seen.add(f.id); }
-  return { blocks, links, flows };
+  return Object.assign(v, { blocks, links, flows });
+}
+
+/* Keep views consistent with the model: blocks of deleted elements go away, and a
+   relationship link must join blocks of the relationship's source and target. */
+function syncModel() {
+  const eids = new Set(model.elements.map(e => e.id));
+  model.relationships = model.relationships.filter(r => eids.has(r.source) && eids.has(r.target));
+  const rels = new Map(model.relationships.map(r => [r.id, r]));
+  for (const v of views) {
+    v.blocks = v.blocks.filter(b => !b.element || eids.has(b.element));
+    const bm = new Map(v.blocks.map(b => [b.id, b]));
+    v.links = v.links.filter(l => {
+      for (const w of ['from', 'to']) if (l[w].block && !bm.has(l[w].block)) return false;
+      if (!l.rel) return true;
+      const r = rels.get(l.rel), fb = bm.get(l.from.block), tb = bm.get(l.to.block);
+      return !!(r && fb && tb && fb.element === r.source && tb.element === r.target);
+    });
+    pruneFlows(v);
+  }
+  bmap = new Map(doc.blocks.map(b => [b.id, b]));
+  for (const id of [...sel]) if (!bmap.has(id) && !linkById(id)) sel.delete(id);
+  if (modelSel && !elById(modelSel) && !relById(modelSel)) modelSel = null;
+}
+
+/* one block geometrically inside another (nesting) */
+const inside = (c, b) => c !== b && c.x >= b.x && c.y >= b.y && c.x + c.w <= b.x + b.w && c.y + c.h <= b.y + b.h;
+const NESTABLE = new Set(['composition', 'aggregation', 'assignment', 'realization', 'specialization']);
+/* Draw the model's relationships between `block` and the other blocks of view v */
+function addRelatedLinks(v, block) {
+  if (!block.element) return [];
+  const added = [];
+  for (const r of model.relationships) {
+    if (r.source !== block.element && r.target !== block.element) continue;
+    if (v.links.some(l => l.rel === r.id)) continue;
+    const other = r.source === block.element ? r.target : r.source;
+    const ob = other === block.element ? block : v.blocks.find(b => b.element === other && b !== block);
+    if (!ob) continue;
+    const fb = r.source === block.element ? block : ob, tb = fb === block ? ob : block;
+    if (NESTABLE.has(r.type) && (inside(fb, tb) || inside(tb, fb))) continue; // shown by nesting
+    const l = relLink(r, fb.id, tb.id);
+    v.links.push(l); added.push(l);
+  }
+  return added;
+}
+/* blocks moved together with `ids`: everything nested inside them and drawn above */
+function withChildren(ids) {
+  const out = new Set(ids);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    doc.blocks.forEach((c, ci) => {
+      if (out.has(c.id)) return;
+      if (doc.blocks.some((b, bi) => out.has(b.id) && bi < ci && inside(c, b))) { out.add(c.id); grew = true; }
+    });
+  }
+  return out;
 }
 
 const linkById = id => doc.links.find(l => l.id === id);
@@ -651,7 +1214,7 @@ const selLinks = () => doc.links.filter(l => sel.has(l.id));
 /* =====================================================================
    Undo / redo / dirty
    ===================================================================== */
-const snapshot = () => JSON.stringify({ blocks: doc.blocks, links: doc.links, flows: doc.flows });
+const snapshot = () => JSON.stringify({ model, views, adm, active: doc.id });
 function pushUndo(snap) {
   if (snap === snapshot()) return;
   undoStack.push(snap);
@@ -660,11 +1223,15 @@ function pushUndo(snap) {
   markDirty();
 }
 function restore(snap) {
-  doc = JSON.parse(snap);
-  doc.flows = doc.flows || [];
+  const o = JSON.parse(snap);
+  model = o.model; views = o.views; adm = o.adm;
+  const next = views.find(v => v.id === o.active) || views[0];
+  if (next.id !== doc.id) { viewports.set(doc.id, { ...view }); const vp = viewports.get(next.id); if (vp) view = { ...vp }; activeFlow = null; }
+  doc = next;
   bmap = new Map(doc.blocks.map(b => [b.id, b]));
   for (const id of [...sel]) if (!bmap.has(id) && !linkById(id)) sel.delete(id);
-  markDirty(); render(); refreshInspector();
+  if (modelSel && !elById(modelSel) && !relById(modelSel)) modelSel = null;
+  markDirty(); render(); refreshAll();
 }
 function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); }
 function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); }
@@ -673,10 +1240,10 @@ let autosaveTimer = null;
 function markDirty() {
   dirty = true; updateTitle();
   clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(() => storageSet('archdiagram.autosave', JSON.stringify({ fileName, data: buildFileObject() })), 400);
+  autosaveTimer = setTimeout(() => storageSet(STORE + 'autosave', JSON.stringify({ fileName, data: buildFileObject() })), 400);
 }
 function updateTitle() {
-  document.title = `${dirty ? '• ' : ''}${fileName} — Arch Diagram`;
+  document.title = `${dirty ? '• ' : ''}${fileName} — Arch TOGAF`;
   $('#fileName').textContent = (dirty ? '● ' : '') + fileName + (fileHandle ? '' : (window.showSaveFilePicker ? '' : ' (download mode)'));
 }
 
@@ -1163,14 +1730,36 @@ function iconHtml(b) {
   return `<span style="font-size:${s}px;color:${esc(b.iconColor)}">${esc(b.icon)}</span>`;
 }
 
+/* block outline: rectangle, cut corners (motivation), tab (grouping) or folded note */
+function shapeSvg(b, attrs) {
+  const w = b.w, h = b.h;
+  if (b.shape === 'bevel') {
+    const c = Math.min(10, w / 4, h / 4);
+    return `<path class="body" d="M${c},0H${w - c}L${w},${c}V${h - c}L${w - c},${h}H${c}L0,${h - c}V${c}Z" ${attrs}/>`;
+  }
+  if (b.shape === 'tab') {
+    const tw = Math.min(w * 0.5, Math.max(60, textWidth(blockName(b), +b.fontSize || 14) + 20)), th = 22;
+    return `<path class="body" d="M0,${th}V0H${f1(tw)}V${th}H${w}V${h}H0Z" ${attrs}/><path d="M0,${th}H${f1(tw)}" ${attrs} fill="none"/>`;
+  }
+  if (b.shape === 'note') {
+    const c = Math.min(14, w / 4, h / 4);
+    return `<path class="body" d="M0,0H${w - c}L${w},${c}V${h}H0Z" ${attrs}/><path d="M${w - c},0V${c}H${w}" ${attrs} fill="none"/>`;
+  }
+  return `<rect class="body" width="${w}" height="${h}" rx="${+b.radius}" ${attrs}/>`;
+}
+
 function blockSvg(b) {
   const sw = b.strokeStyle === 'none' ? 0 : +b.strokeWidth;
   const dash = dashArray(b.strokeStyle, sw);
+  const el = b.element ? elById(b.element) : null;
   let s = `<g class="block" data-block="${esc(b.id)}" transform="translate(${f1(b.x)},${f1(b.y)})">`;
   if (b.highlight) {
     s += `<rect x="-5" y="-5" width="${b.w + 10}" height="${b.h + 10}" rx="${+b.radius + 5}" fill="none" stroke="${esc(b.badgeColor)}" stroke-width="3" opacity=".55"/>`;
   }
-  s += `<rect class="body" width="${b.w}" height="${b.h}" rx="${+b.radius}" fill="${esc(b.fill)}" stroke="${sw ? esc(b.stroke) : 'none'}" stroke-width="${sw}"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
+  if (modelSel && el && el.id === modelSel) {
+    s += `<rect x="-4" y="-4" width="${b.w + 8}" height="${b.h + 8}" rx="${+b.radius + 4}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 3"/>`;
+  }
+  s += shapeSvg(b, `fill="${esc(b.fill)}" stroke="${sw ? esc(b.stroke) : 'none'}" stroke-width="${sw}"${dash ? ` stroke-dasharray="${dash}"` : ''}`);
 
   const pos = b.iconPos || 'left';
   const jh = { left: 'flex-start', center: 'center', right: 'flex-end' }[b.align] || 'center';
@@ -1180,8 +1769,14 @@ function blockSvg(b) {
   else if (pos === 'right') { dir = 'row-reverse'; justify = jh === 'flex-start' ? 'flex-end' : jh === 'flex-end' ? 'flex-start' : 'center'; }
   const icon = iconHtml(b);
   const iconPart = icon ? (pos === 'corner' ? `<div class="bi bi-corner">${icon}</div>` : `<div class="bi">${icon}</div>`) : '';
-  const title = editingId === b.id ? '' : b.title;
-  s += `<foreignObject width="${b.w}" height="${b.h}"><div xmlns="http://www.w3.org/1999/xhtml" class="bc" style="flex-direction:${dir};justify-content:${justify};align-items:${alignItems};color:${esc(b.textColor)};font-size:${+b.fontSize}px;text-align:${b.align}">${iconPart}<div class="bt">${title}</div></div></foreignObject>`;
+  let title = editingId === b.id ? '' : b.title;
+  let glyph = '', cls = 'bc';
+  if (b.element) {
+    title = editingId === b.id ? '' : (el ? esc(el.name) : '<i>missing element</i>');
+    if (el && settings.model.showType && editingId !== b.id) title += `<div class="ty">${esc(typeName(el.type))}</div>`;
+    if (el && settings.model.showGlyph && el.type !== 'grouping') { glyph = `<div class="bi bi-tr">${typeGlyph(el.type, 16, '#1f2937')}</div>`; cls += ' el'; }
+  }
+  s += `<foreignObject width="${b.w}" height="${b.h}"><div xmlns="http://www.w3.org/1999/xhtml" class="${cls}" style="flex-direction:${dir};justify-content:${justify};align-items:${alignItems};color:${esc(b.textColor)};font-size:${+b.fontSize}px;text-align:${b.align}${b.shape === 'tab' ? ';padding-top:3px' : ''}">${iconPart}${glyph}<div class="bt">${title}</div></div></foreignObject>`;
 
   if (b.badge) {
     const fs = 11, tw = Math.max(18, textWidth(b.badge, fs) + 12), bh = 18;
@@ -1226,6 +1821,7 @@ function linkSvg(l, g, ends) {
   const dash = dashArray(l.style, l.width);
   const selected = sel.has(l.id);
   let s = `<g class="link" data-link="${esc(l.id)}">`;
+  if (modelSel && l.rel === modelSel) s += `<path d="${full}" fill="none" stroke="#f59e0b" stroke-opacity=".5" stroke-width="${l.width + 7}" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`;
   if (selected) s += `<path d="${full}" fill="none" stroke="#2563eb" stroke-opacity=".28" stroke-width="${l.width + 7}" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`;
   const hw = Math.max(12, l.width + 8);
   if (g.type === 'poly') {
@@ -1284,7 +1880,7 @@ function flowSvg() {
     let x, y;
     const b = bmap.get(ref);
     if (b) { x = b.x - 6; y = b.y; } else {
-      const g = lastGeo.get(ref), l = linkById(ref);
+      const g = lastGeo.get(ref), l = linkById(ref) && effLink(linkById(ref));
       if (!g || !l) continue;
       const p = pointAtMiddle(g);
       x = p.x - total / 2; y = p.y - (l.label ? 20 : 0);
@@ -1377,7 +1973,7 @@ function doRender() {
   for (const l of doc.links) {
     const g = geo.get(l.id), e = ends.get(l.id);
     if (!g) continue;
-    ls += linkSvg(l, g, e);
+    ls += linkSvg(effLink(l), g, e);
     cs += connectorsSvg(l, e);
   }
   linkLayer.innerHTML = ls;
@@ -1444,6 +2040,8 @@ svg.addEventListener('pointerdown', e => {
     return;
   }
   if (e.button !== 0) return;
+  if (relPick) closeRelPicker();
+  if (modelSel) { modelSel = null; refreshLeft(); }
   const t = e.target;
   const mod = e.ctrlKey || e.metaKey;
 
@@ -1485,7 +2083,7 @@ svg.addEventListener('pointerdown', e => {
     if (e.shiftKey) { drag = { type: 'newLink', from: b, p0: p, p, moved: false }; return; }
     if (mod) { sel.has(b.id) ? sel.delete(b.id) : sel.add(b.id); refreshInspector(); render(); return; }
     if (!sel.has(b.id)) { sel = new Set([b.id]); refreshInspector(); }
-    const ids = [...sel].filter(id => bmap.has(id));
+    const ids = [...withChildren([...sel].filter(id => bmap.has(id)))];
     drag = { type: 'move', starts: ids.map(id => ({ b: bmap.get(id), x: bmap.get(id).x, y: bmap.get(id).y })), wps: carriedWaypoints(new Set(ids)), p0: p, snap: snapshot(), moved: false };
     render();
     return;
@@ -1592,7 +2190,12 @@ window.addEventListener('pointerup', e => {
   const d = drag;
   drag = null;
   switch (d.type) {
-    case 'move': case 'resize': case 'linkEnd': case 'seg':
+    case 'linkEnd':
+      if (d.moved && d.l.rel && !reconnectRelationship(d)) break;
+      if (d.moved) pushUndo(d.snap);
+      refreshInspector();
+      break;
+    case 'move': case 'resize': case 'seg':
       if (d.moved) pushUndo(d.snap);
       refreshInspector();
       break;
@@ -1604,6 +2207,8 @@ window.addEventListener('pointerup', e => {
       }
       const target = blockAt(d.p, 4 / view.k);
       if (target === d.from) break;
+      // between two elements: choose the relationship type
+      if (target && target.element && d.from.element) { openRelPicker(d.from, target, e); break; }
       const snap = snapshot();
       const to = target ? { block: target.id, side: 'auto' } : { x: snapV(d.p.x, e), y: snapV(d.p.y, e) };
       const l = newLink({ block: d.from.id, side: 'auto' }, to);
@@ -1650,6 +2255,12 @@ function onDoubleClick(e) {
   const b = bEl ? bmap.get(bEl.dataset.block) : blockAt(p);
   if (b) { startEdit(b); return; }
   const lEl = e.target.closest('[data-link]');
+  if (lEl && linkById(lEl.dataset.link)?.rel && !e.target.closest('[data-seg]')) {
+    sel = new Set([lEl.dataset.link]); refreshInspector(); render();
+    const inp = inspector.querySelector('[data-r=name]');
+    if (inp) { inp.focus(); inp.select(); }
+    return;
+  }
   if (lEl) {
     const l = linkById(lEl.dataset.link);
     // double-click on a segment of a manually routed polyline: back to automatic routing
@@ -1662,12 +2273,67 @@ function onDoubleClick(e) {
       return;
     }
     sel = new Set([lEl.dataset.link]); refreshInspector(); render();
-    const inp = inspector.querySelector('[data-k=label]');
+    const inp = inspector.querySelector('[data-k=label],[data-r=name]');
     if (inp) { inp.focus(); inp.select(); }
     return;
   }
-  addBlockAt(p);
+  addItemAt(curType, p);
 }
+
+/* A relationship link end was dragged: re-attach the relationship to the new element,
+   or put the end back if it does not land on an element. */
+function reconnectRelationship(d) {
+  const l = d.l, r = relById(l.rel), end = l[d.which];
+  const b = end.block && bmap.get(end.block);
+  const back = msg => { restore(d.snap); toast(msg, true); return false; };
+  if (!r) return true;
+  if (!b || !b.element) return back('A relationship must join two elements');
+  const src = d.which === 'from' ? b.element : r.source, tgt = d.which === 'to' ? b.element : r.target;
+  if (src === r.source && tgt === r.target) return true;
+  const S = elById(src), T = elById(tgt);
+  if (settings.model.strictRelations && !validRelations(S.type, T.type).has(r.type)) {
+    return back(`${REL_TYPES[r.type].name} is not allowed from ${typeName(S.type)} to ${typeName(T.type)}`);
+  }
+  r.source = src; r.target = tgt;
+  // other views showing this relationship lose it if their blocks no longer match
+  syncModel();
+  toast('Relationship reconnected in the model');
+  return true;
+}
+
+/* ---------- relationship picker (shown when connecting two elements) ---------- */
+function openRelPicker(fromB, toB, e) {
+  const S = elById(fromB.element), T = elById(toB.element);
+  if (!S || !T) return;
+  const valid = validRelations(S.type, T.type), def = suggestRelation(S.type, T.type, valid);
+  const ok = REL_ORDER.filter(t => valid.has(t)), other = REL_ORDER.filter(t => !valid.has(t));
+  const btn = (t, bad) => `<button data-rel="${t}" class="${t === def ? 'def' : ''}${bad ? ' bad' : ''}">${relIcon(t)}<span>${REL_TYPES[t].name}</span></button>`;
+  let h = `<div class="rp-h">${esc(S.name)} → ${esc(T.name)}</div>` + ok.map(t => btn(t)).join('');
+  if (!settings.model.strictRelations && other.length) h += `<div class="sep"></div><div class="rp-h">Not valid in ArchiMate</div>` + other.map(t => btn(t, true)).join('');
+  const rp = $('#relPicker');
+  rp.innerHTML = h; rp.hidden = false;
+  const sr = stage.getBoundingClientRect();
+  const x = clamp(e.clientX - sr.left + 8, 4, sr.width - rp.offsetWidth - 4), y = clamp(e.clientY - sr.top + 8, 4, sr.height - rp.offsetHeight - 4);
+  rp.style.left = x + 'px'; rp.style.top = y + 'px';
+  relPick = { from: fromB.id, to: toB.id, def };
+}
+function closeRelPicker() { relPick = null; $('#relPicker').hidden = true; }
+function pickRelation(type) {
+  const p = relPick;
+  closeRelPicker();
+  const fb = p && bmap.get(p.from), tb = p && bmap.get(p.to);
+  if (!fb || !tb) return;
+  const snap = snapshot();
+  const r = newRelationship(type, fb.element, tb.element);
+  model.relationships.push(r);
+  const l = relLink(r, fb.id, tb.id);
+  doc.links.push(l);
+  sel = new Set([l.id]);
+  pushUndo(snap);
+  refreshAll(); render();
+}
+$('#relPicker').addEventListener('pointerdown', e => e.stopPropagation());
+$('#relPicker').addEventListener('click', e => { const b = e.target.closest('[data-rel]'); if (b) pickRelation(b.dataset.rel); });
 
 svg.addEventListener('wheel', e => {
   e.preventDefault();
@@ -1709,23 +2375,37 @@ function fitView() {
 /* =====================================================================
    Commands
    ===================================================================== */
-function addBlockAt(p) {
+/* Add an element of `type` (or a note) to the active view, centered on p */
+function addItemAt(type, p, el) {
   const snap = snapshot();
-  const b = newBlock(0, 0);
+  let b;
+  if (type === 'note') b = noteBlock(0, 0);
+  else {
+    if (!el) { el = newElement(type); model.elements.push(el); }
+    b = elementBlock(el, 0, 0);
+  }
   b.x = snapV(p.x - b.w / 2); b.y = snapV(p.y - b.h / 2);
-  doc.blocks.push(b);
+  // groupings go behind; anything else on top
+  if (el && el.type === 'grouping') doc.blocks.unshift(b); else doc.blocks.push(b);
+  bmap.set(b.id, b);
+  addRelatedLinks(doc, b);
   sel = new Set([b.id]);
+  if (type !== 'note' && type !== curType && !el) curType = type;
   pushUndo(snap);
-  refreshInspector(); render();
+  refreshAll(); render();
   return b;
 }
-function addBlockCenter() {
+function viewCenter() {
   const r = svg.getBoundingClientRect();
-  const p = { x: (r.width / 2 - view.x) / view.k, y: (r.height / 2 - view.y) / view.k };
+  return { x: (r.width / 2 - view.x) / view.k, y: (r.height / 2 - view.y) / view.k };
+}
+function addItemCenter(type, el) {
+  const p = viewCenter();
   let n = 0;
   while (blockAt(p) && n++ < 20) { p.x += 20; p.y += 20; }
-  addBlockAt(p);
+  return addItemAt(type, p, el);
 }
+/* remove the selection from the view (the model keeps the elements) */
 function deleteSelection() {
   if (!sel.size) return;
   const snap = snapshot();
@@ -1735,36 +2415,88 @@ function deleteSelection() {
   pruneFlows();
   sel.clear();
   pushUndo(snap);
-  refreshInspector(); render();
+  refreshAll(); render();
+}
+/* remove elements / relationships from the model and from every view */
+function deleteFromModel(ids) {
+  ids = new Set(ids);
+  if (!ids.size) return;
+  const snap = snapshot();
+  model.elements = model.elements.filter(e => !ids.has(e.id));
+  model.relationships = model.relationships.filter(r => !ids.has(r.id));
+  syncModel();
+  if (ids.has(modelSel)) modelSel = null;
+  pushUndo(snap);
+  refreshAll(); render();
+  toast('Deleted from the model (Undo restores it)');
+}
+/* model ids behind the current selection */
+function selectedModelIds() {
+  const out = [];
+  for (const b of selBlocks()) if (b.element) out.push(b.element);
+  for (const l of selLinks()) if (l.rel) out.push(l.rel);
+  return out;
 }
 function copySelection() {
   const blocks = selBlocks();
   const ids = new Set(blocks.map(b => b.id));
   const endIn = e => !e.block || ids.has(e.block);
-  const links = doc.links.filter(l => sel.has(l.id) || ((l.from.block || l.to.block) && endIn(l.from) && endIn(l.to)));
-  clipboard = clone({ blocks, links });
+  const links = doc.links.filter(l => (sel.has(l.id) && !l.rel) || ((l.from.block || l.to.block) && endIn(l.from) && endIn(l.to)));
+  const elements = blocks.filter(b => b.element).map(b => elById(b.element)).filter(Boolean);
+  const rels = links.filter(l => l.rel).map(l => relById(l.rel)).filter(Boolean);
+  clipboard = clone({ blocks, links, elements, rels });
   return clipboard.blocks.length + clipboard.links.length;
 }
+/* Paste like Archi: an element not yet in this view is pasted as a reference to the
+   same model element; if the view already shows it, a copy of the element is made. */
 function pasteClipboard(offset = 20) {
   if (!clipboard) return;
   const snap = snapshot();
-  const map = new Map();
-  const nb = clipboard.blocks.map(b => { const c = clone(b); c.id = uid('b'); map.set(b.id, c.id); c.x += offset; c.y += offset; return c; });
+  const map = new Map(), elMap = new Map();
+  const cbEl = new Map(clipboard.elements.map(e => [e.id, e])), cbRel = new Map(clipboard.rels.map(r => [r.id, r]));
+  const resolveEl = id => {
+    if (elMap.has(id)) return elMap.get(id);
+    let el = elById(id);
+    if (!el || doc.blocks.some(b => b.element === id)) {
+      const src = el || cbEl.get(id);
+      el = Object.assign(clone(src), { id: uid('e'), name: src.name + (elById(id) ? ' (copy)' : '') });
+      model.elements.push(el);
+    }
+    elMap.set(id, el.id);
+    return el.id;
+  };
+  const nb = clipboard.blocks.map(b => {
+    const c = clone(b); c.id = uid('b'); map.set(b.id, c.id); c.x += offset; c.y += offset;
+    if (c.element) c.element = resolveEl(b.element);
+    return c;
+  });
   const mapEnd = e => {
     if (e.block) return map.has(e.block) ? Object.assign(clone(e), { block: map.get(e.block) }) : clone(e);
     return { x: e.x + offset, y: e.y + offset };
   };
-  const nl = clipboard.links.map(l => {
+  const nl = [];
+  for (const l of clipboard.links) {
     const c = Object.assign(clone(l), { id: uid('l'), from: mapEnd(l.from), to: mapEnd(l.to) });
     if (c.waypoints) c.waypoints = c.waypoints.map(q => ({ x: q.x + offset, y: q.y + offset }));
-    return c;
-  });
+    if (c.rel) {
+      const fb = nb.find(b => b.id === c.from.block), tb = nb.find(b => b.id === c.to.block);
+      const r = relById(l.rel) || cbRel.get(l.rel);
+      if (!fb || !tb || !r) continue;
+      if (relById(l.rel) && fb.element === r.source && tb.element === r.target && !doc.links.some(x => x.rel === r.id) && !nl.some(x => x.rel === r.id)) c.rel = r.id;
+      else {
+        const nr = Object.assign(clone(r), { id: uid('r'), source: fb.element, target: tb.element });
+        model.relationships.push(nr);
+        c.rel = nr.id;
+      }
+    }
+    nl.push(c);
+  }
   doc.blocks.push(...nb); doc.links.push(...nl);
   sel = new Set([...nb.map(b => b.id), ...nl.map(l => l.id)]);
   // keep the clipboard relative to the pasted copies so repeated paste cascades
-  clipboard = clone({ blocks: nb, links: nl });
+  clipboard = Object.assign(clone({ blocks: nb, links: nl }), { elements: clone(nb.filter(b => b.element).map(b => elById(b.element))), rels: clone(nl.filter(l => l.rel).map(l => relById(l.rel))) });
   pushUndo(snap);
-  refreshInspector(); render();
+  refreshAll(); render();
 }
 function duplicateSelection() { if (copySelection()) pasteClipboard(); }
 function reorder(front) {
@@ -1774,7 +2506,8 @@ function reorder(front) {
   pushUndo(snap); render();
 }
 function nudgeSelection(dx, dy) {
-  const blocks = selBlocks();
+  const all = withChildren(selBlocks().map(b => b.id));
+  const blocks = doc.blocks.filter(b => all.has(b.id));
   if (!blocks.length) return;
   const snap = snapshot();
   for (const b of blocks) { b.x = r2(b.x + dx); b.y = r2(b.y + dy); }
@@ -1790,7 +2523,9 @@ function startEdit(b) {
   if (!b) return;
   editingId = b.id;
   sel = new Set([b.id]); refreshInspector();
-  edInner.innerHTML = b.title;
+  const el = b.element && elById(b.element);
+  if (b.element) edInner.textContent = el ? el.name : ''; else edInner.innerHTML = b.title;
+  edBar.classList.toggle('plain', !!b.element);
   edWrap.hidden = false; edBar.hidden = false;
   doRender();
   edInner.focus();
@@ -1819,7 +2554,11 @@ function commitEditor() {
   const id = editingId;
   editingId = null;
   edWrap.hidden = true; edBar.hidden = true;
-  if (b) {
+  const el = b && b.element && elById(b.element);
+  if (el) {
+    const name = edInner.innerText.replace(/\s+/g, ' ').trim().slice(0, 300);
+    if (name !== el.name) { const snap = snapshot(); el.name = name; pushUndo(snap); refreshLeft(); }
+  } else if (b && !b.element) {
     let html = sanitizeHtml(edInner.innerHTML);
     if (html === '<br>') html = '';
     if (html !== b.title) {
@@ -1845,7 +2584,7 @@ function restoreRange() {
 }
 edInner.addEventListener('keydown', e => {
   e.stopPropagation();
-  if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); commitEditor(); }
+  if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey || edBar.classList.contains('plain')))) { e.preventDefault(); commitEditor(); }
 });
 edInner.addEventListener('blur', () => {
   setTimeout(() => {
@@ -1944,37 +2683,117 @@ function toHex(c) {
 }
 
 function refreshInspector() { refreshProps(); refreshFlows(); }
+function refreshAll() { updateHint(); refreshInspector(); refreshLeft(); refreshViewTabs(); }
+
+const typeOptions = cur => Object.entries(LAYERS).map(([lk, L]) => `<optgroup label="${esc(L.name)}">` +
+  Object.values(ELEMENT_TYPES).filter(t => t.layer === lk).map(t => `<option value="${t.id}"${t.id === cur ? ' selected' : ''}>${esc(t.name)}</option>`).join('') + '</optgroup>').join('');
+const viewsUsing = (id, isRel) => views.filter(v => isRel ? v.links.some(l => l.rel === id) : v.blocks.some(b => b.element === id));
+const typeTag = t => `<span class="typetag" style="background:${typeColor(t)}">${typeGlyph(t, 15)}${esc(typeName(t))}</span>`;
+const cntSpan = n => `<span style="text-transform:none;letter-spacing:0;font-weight:400">(${n})</span>`;
+
+function propsSection(o, kind) {
+  const a = `data-${kind}="${esc(o.id)}"`;
+  let h = `<h3>Properties ${o.properties.length ? cntSpan(o.properties.length) : ''}</h3>`;
+  h += o.properties.map((p, i) => `<div class="prop-row"><input type="text" ${a} data-p="key" data-i="${i}" value="${esc(p.key)}" placeholder="Key">` +
+    `<input type="text" ${a} data-p="value" data-i="${i}" value="${esc(p.value)}" placeholder="Value"><button data-act="delProp" ${a} data-i="${i}" title="Remove">✕</button></div>`).join('');
+  return h + `<div class="btns" style="margin-top:4px"><button class="btn" data-act="addProp" ${a}>+ Property</button></div>`;
+}
+function usedInSection(id, isRel) {
+  const vs = viewsUsing(id, isRel);
+  let h = `<h3>Used in views ${cntSpan(vs.length)}</h3>`;
+  if (!vs.length) h += `<div class="muted" style="font-size:12px">Not shown in any view.</div>`;
+  h += vs.map(v => `<button class="vlink" data-act="gotoView" data-view="${esc(v.id)}" data-id="${esc(id)}">${v === doc ? '● ' : ''}${esc(v.name)}${v.phase ? ` <span class="muted">· ${esc(admPhase(v.phase).code)}</span>` : ''}</button>`).join('');
+  if (!isRel && !vs.includes(doc)) h += `<div class="btns"><button class="btn primary" data-act="addToView" data-id="${esc(id)}">+ Add to this view</button></div>`;
+  return h;
+}
+function elementSection(el) {
+  const T = ELEMENT_TYPES[el.type], a = `data-eid="${esc(el.id)}"`;
+  let h = `<h3>Element</h3><div style="margin:2px 0 8px">${typeTag(el.type)} <span class="muted" style="font-size:11px">${esc(LAYERS[T.layer].name)} layer</span></div>`;
+  h += row('Name', `<input type="text" ${a} data-m="name" value="${esc(el.name)}">`);
+  h += row('Type', `<select ${a} data-m="type">${typeOptions(el.type)}</select>`);
+  h += row('Documentation', `<textarea ${a} data-m="documentation" rows="3" placeholder="Description, rationale…">${esc(el.documentation)}</textarea>`);
+  h += propsSection(el, 'eid');
+  const rels = model.relationships.filter(r => r.source === el.id || r.target === el.id);
+  h += `<h3>Model relations ${cntSpan(rels.length)}</h3>`;
+  if (!rels.length) h += `<div class="muted" style="font-size:12px">None. Shift + drag from this element to another one to relate them.</div>`;
+  h += rels.map(r => {
+    const out = r.source === el.id, o = elById(out ? r.target : r.source);
+    const shown = doc.links.some(l => l.rel === r.id);
+    return `<div class="rel-item" data-act="pickModel" data-id="${esc(o.id)}" title="${esc(typeName(o.type))}${shown ? '' : ' (not drawn in this view)'}"><span class="rt">${out ? '→' : '←'} ${REL_TYPES[r.type].name.toLowerCase()}</span>` +
+      `${typeGlyph(o.type, 14)}<span class="nm"${shown ? '' : ' style="opacity:.6"'}>${esc(o.name || '(unnamed)')}</span></div>`;
+  }).join('');
+  h += usedInSection(el.id, false);
+  h += `<div class="btns"><button class="btn" data-act="revealModel" data-id="${esc(el.id)}">Show in model tree</button><button class="btn danger" data-act="delModel" data-id="${esc(el.id)}" title="Delete from the model and from every view">Delete from model</button></div>`;
+  return h;
+}
+function relationshipSection(r) {
+  const S = elById(r.source), T = elById(r.target), a = `data-rid="${esc(r.id)}"`;
+  const valid = validRelations(S.type, T.type);
+  let h = `<h3>Relationship</h3><div style="display:flex;align-items:center;gap:6px;margin:2px 0 6px">${relIcon(r.type)}<b>${REL_TYPES[r.type].name}</b></div>`;
+  h += `<div style="font-size:12px;margin:2px 0 8px;display:flex;flex-direction:column;gap:3px"><span class="rel-item" data-act="pickModel" data-id="${esc(S.id)}">${typeGlyph(S.type, 14)}<span class="nm">${esc(S.name)}</span></span>` +
+    `<span class="muted" style="padding-left:8px">↓ ${REL_TYPES[r.type].name.toLowerCase()}</span><span class="rel-item" data-act="pickModel" data-id="${esc(T.id)}">${typeGlyph(T.type, 14)}<span class="nm">${esc(T.name)}</span></span></div>`;
+  h += row('Name', `<input type="text" ${a} data-r="name" value="${esc(r.name)}" placeholder="optional label">`);
+  h += row('Type', `<select ${a} data-r="type">${REL_ORDER.map(t => `<option value="${t}"${t === r.type ? ' selected' : ''}>${REL_TYPES[t].name}${valid.has(t) ? '' : ' (not valid)'}</option>`).join('')}</select>`);
+  if (r.type === 'access') h += row('Access', `<select ${a} data-r="accessType">${ACCESS_TYPES.map(([v, l]) => `<option value="${v}"${v === r.accessType ? ' selected' : ''}>${l}</option>`).join('')}</select>`);
+  if (r.type === 'association') h += row('Directed', `<input type="checkbox" ${a} data-r="directed"${r.directed ? ' checked' : ''}>`);
+  if (!valid.has(r.type)) h += `<div class="warn">${REL_TYPES[r.type].name} is not valid from ${esc(typeName(S.type))} to ${esc(typeName(T.type))} (simplified ArchiMate rules).</div>`;
+  h += row('Documentation', `<textarea ${a} data-r="documentation" rows="3">${esc(r.documentation)}</textarea>`);
+  h += propsSection(r, 'rid');
+  h += usedInSection(r.id, true);
+  h += `<div class="btns"><button class="btn" data-act="revealModel" data-id="${esc(r.id)}">Show in model tree</button><button class="btn danger" data-act="delModel" data-id="${esc(r.id)}">Delete from model</button></div>`;
+  return h;
+}
+function viewSection() {
+  let h = `<h3>View</h3>`;
+  h += row('Name', `<input type="text" data-vf="name" value="${esc(doc.name)}">`);
+  h += row('Viewpoint', `<select data-vf="viewpoint">${Object.entries(VIEWPOINTS).map(([k, v]) => `<option value="${k}"${k === doc.viewpoint ? ' selected' : ''}>${esc(v.name)}</option>`).join('')}</select>`);
+  h += row('ADM phase', `<select data-vf="phase"><option value="">—</option>${ADM_PHASES.map(p => `<option value="${p.id}"${p.id === doc.phase ? ' selected' : ''}>${esc(p.id === 'prelim' || p.id === 'RM' ? p.name : p.code + ' · ' + p.name)}</option>`).join('')}</select>`);
+  h += row('Description', `<textarea data-vf="description" rows="3" placeholder="Purpose, stakeholders, concerns">${esc(doc.description)}</textarea>`);
+  const outVp = doc.blocks.filter(b => { const e = b.element && elById(b.element); return e && !viewpointAllows(doc.viewpoint, e.type); }).length;
+  if (outVp) h += `<div class="warn">${outVp} element${outVp > 1 ? 's are' : ' is'} outside the "${esc(VIEWPOINTS[doc.viewpoint].name)}" viewpoint.</div>`;
+  h += `<div class="muted">${doc.blocks.length} blocks · ${doc.links.length} links</div>`;
+  h += `<div class="btns"><button class="btn primary" data-act="newView">+ New view</button><button class="btn" data-act="dupView">Duplicate</button><button class="btn danger" data-act="delView"${views.length < 2 ? ' disabled' : ''}>Delete view</button></div>`;
+  h += `<h3>Model</h3>`;
+  h += row('Name', `<input type="text" data-mf="name" value="${esc(model.name)}">`);
+  h += row('Description', `<textarea data-mf="description" rows="2">${esc(model.description)}</textarea>`);
+  h += `<div class="muted">${model.elements.length} elements · ${model.relationships.length} relationships · ${views.length} views</div>`;
+  h += `<div class="btns"><button class="btn" data-act="catalogs">Catalogs &amp; matrices</button><button class="btn" data-act="settings">Settings</button></div>`;
+  h += `<h3>How to</h3>
+    <ul class="tips">
+      <li>Pick an element type in the <b>Palette</b> (click, or drag it onto the canvas). <b>Double-click</b> the canvas to add another one of the same type.</li>
+      <li><b>Shift + drag</b> from an element to another one, then choose the relationship. Only types valid in ArchiMate are offered.</li>
+      <li>Drag an element from the <b>Model</b> tab to show it in this view; its relationships with elements already here are drawn.</li>
+      <li><b>Del</b> removes from the view only. <b>Ctrl/⌘ + Del</b> deletes from the model.</li>
+      <li>Blocks placed inside a grouping, node or location move with it.</li>
+      <li>The <b>ADM</b> tab tracks phases, deliverables and the views of each phase.</li>
+    </ul>
+    <h3>About</h3>
+    <div class="muted">${esc(APP_INFO.name)} v${esc(APP_INFO.version)}<br><a href="${esc(APP_INFO.github)}" target="_blank" rel="noopener">${esc(APP_INFO.github)}</a></div>`;
+  return h;
+}
+
 function refreshProps() {
   const blocks = selBlocks(), links = selLinks();
   let h = '';
   if (!blocks.length && !links.length) {
-    h += `<h3>Diagram</h3>
-      <div class="muted">${doc.blocks.length} blocks · ${doc.links.length} links</div>
-      <div class="btns"><button class="btn primary" data-act="addBlock">+ Add block</button><button class="btn" data-act="settings">Settings</button></div>
-      <h3>How to</h3>
-      <ul class="tips">
-        <li><b>Double-click</b> empty canvas to add a block.</li>
-        <li><b>Shift + drag</b> from a block to draw a link. Drop on another block or on empty canvas (free end).</li>
-        <li><b>Drag a polyline segment</b> to move it. <b>Double-click</b> it, or use "Reset route" in the sidebar, to go back to automatic routing.</li>
-        <li>Select a link and <b>drag its end handles</b> (or connectors) to another side or block. Drop near the center of a block for an automatic side.</li>
-        <li><b>Double-click</b> a block to edit the rich-text title (Enter = new line).</li>
-        <li>Open the <b>Flows</b> tab to describe a request path or scenario as numbered steps.</li>
-        <li><b>Wheel</b> zooms. <b>Drag empty canvas</b> to pan. <b>Shift + drag</b> on empty canvas selects a box.</li>
-      </ul>
-      <h3>About</h3>
-      <div class="muted">${esc(APP_INFO.name)} v${esc(APP_INFO.version)}<br><a href="${esc(APP_INFO.github)}" target="_blank" rel="noopener">${esc(APP_INFO.github)}</a></div>`;
-    inspector.innerHTML = h;
+    const el = modelSel && elById(modelSel), r = modelSel && relById(modelSel);
+    inspector.innerHTML = el ? elementSection(el) : r ? relationshipSection(r) : viewSection();
     return;
   }
   if (blocks.length) {
     const b = blocks[0], T = 'block';
-    h += `<h3>${blocks.length > 1 ? blocks.length + ' blocks' : 'Block'}</h3>`;
-    if (blocks.length === 1) {
-      h += `<div class="row"><span>Title</span><div class="muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(htmlToText(b.title)) || '<i>empty</i>'}</div></div>`;
-      h += `<div class="muted" style="font-size:12px;margin:-2px 0 4px">Double-click the block to edit its title</div>`;
+    const el = blocks.length === 1 && b.element && elById(b.element);
+    if (el) h += elementSection(el);
+    else {
+      h += `<h3>${blocks.length > 1 ? blocks.length + ' blocks' : 'Note'}</h3>`;
+      if (blocks.length === 1) {
+        h += `<div class="row"><span>Text</span><div class="muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(htmlToText(b.title)) || '<i>empty</i>'}</div></div>`;
+        h += `<div class="muted" style="font-size:12px;margin:-2px 0 4px">Double-click the note to edit its text</div>`;
+      }
     }
     h += `<h3>Style</h3>`;
     h += row('Fill', ctl(T, 'fill', 'color', b.fill));
+    h += row('Shape', ctl(T, 'shape', 'select', b.shape, { options: OPTS.shape }));
     h += row('Border', ctl(T, 'strokeStyle', 'select', b.strokeStyle, { options: OPTS.strokeStyle }));
     h += row('Border color', ctl(T, 'stroke', 'color', b.stroke));
     h += row('Border width', ctl(T, 'strokeWidth', 'number', b.strokeWidth, { min: 0, step: 0.5 }));
@@ -1984,12 +2803,14 @@ function refreshProps() {
     h += row('Font size', ctl(T, 'fontSize', 'number', b.fontSize, { min: 6 }));
     h += irow('Align', iconCtl(T, 'align', ICON_SETS.align, b.align));
     h += irow('Vertical', iconCtl(T, 'valign', ICON_SETS.valign, b.valign));
-    h += `<h3>Icon</h3><div class="icon-grid"><button data-act="icon" data-icon="" class="${!b.icon ? 'on' : ''}" title="No icon">∅</button>` +
-      Object.keys(ICONS).map(n => `<button data-act="icon" data-icon="${n}" title="${n}" class="${b.icon === n ? 'on' : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg></button>`).join('') + `</div>`;
-    h += row('Emoji / text', ctl(T, 'icon', 'text', ICONS[b.icon] ? '' : b.icon, { placeholder: 'e.g. 🚀 or λ' }));
-    h += row('Icon color', ctl(T, 'iconColor', 'color', b.iconColor));
-    h += row('Icon size', ctl(T, 'iconSize', 'number', b.iconSize, { min: 8 }));
-    h += irow('Position', iconCtl(T, 'iconPos', ICON_SETS.iconPos, b.iconPos));
+    if (!blocks.some(x => x.element)) {
+      h += `<h3>Icon</h3><div class="icon-grid"><button data-act="icon" data-icon="" class="${!b.icon ? 'on' : ''}" title="No icon">∅</button>` +
+        Object.keys(ICONS).map(n => `<button data-act="icon" data-icon="${n}" title="${n}" class="${b.icon === n ? 'on' : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg></button>`).join('') + `</div>`;
+      h += row('Emoji / text', ctl(T, 'icon', 'text', ICONS[b.icon] ? '' : b.icon, { placeholder: 'e.g. 🚀 or λ' }));
+      h += row('Icon color', ctl(T, 'iconColor', 'color', b.iconColor));
+      h += row('Icon size', ctl(T, 'iconSize', 'number', b.iconSize, { min: 8 }));
+      h += irow('Position', iconCtl(T, 'iconPos', ICON_SETS.iconPos, b.iconPos));
+    }
     if (blocks.length === 1) h += connectorsSection(b);
     h += `<h3>Badge / highlight</h3>`;
     h += row('Badge text', ctl(T, 'badge', 'text', b.badge, { placeholder: 'e.g. NEW, v2, !' }));
@@ -1997,13 +2818,20 @@ function refreshProps() {
     h += row('Badge text color', ctl(T, 'badgeTextColor', 'color', b.badgeTextColor));
     h += row('Highlight ring', ctl(T, 'highlight', 'checkbox', b.highlight));
     h += `<div class="btns"><button class="btn" data-act="front">Bring to front</button><button class="btn" data-act="back">Send to back</button>
-      <button class="btn" data-act="defBlock" title="Use this style for new blocks">Set as default style</button>
-      <button class="btn" data-act="dup">Duplicate</button><button class="btn danger" data-act="delete">Delete</button></div>`;
+      ${b.element ? `<button class="btn" data-act="resetStyle" title="Back to the colors and shape of the element type">Reset type style</button>` : `<button class="btn" data-act="defBlock" title="Use this style for new notes">Set as default style</button>`}
+      <button class="btn" data-act="dup">Duplicate</button><button class="btn" data-act="delete" title="Remove from this view (Del)">Remove from view</button>
+      ${blocks.some(x => x.element) ? `<button class="btn danger" data-act="delModelSel" title="Delete from the model and every view (Ctrl/⌘+Del)">Delete from model</button>` : ''}</div>`;
   }
   if (links.length) {
     const l = links[0], T = 'link';
-    h += `<h3>${links.length > 1 ? links.length + ' links' : 'Link'}</h3>`;
-    h += row('Label', ctl(T, 'label', 'text', l.label, { placeholder: 'optional' }));
+    const r = links.length === 1 && l.rel && relById(l.rel);
+    const allRel = links.every(x => x.rel);
+    if (r) h += relationshipSection(r);
+    else {
+      h += `<h3>${links.length > 1 ? links.length + ' links' : 'Connection'}</h3>`;
+      if (!allRel) h += row('Label', ctl(T, 'label', 'text', l.label, { placeholder: 'optional' }));
+    }
+    h += `<h3>Line</h3>`;
     h += row('Routing', ctl(T, 'route', 'select', l.route, { options: OPTS.route }));
     if (l.route === 'poly') {
       const manual = links.some(x => x.waypoints);
@@ -2011,11 +2839,13 @@ function refreshProps() {
     }
     h += row('Color', ctl(T, 'color', 'color', l.color));
     h += row('Width', ctl(T, 'width', 'number', l.width, { min: 0.5, step: 0.5 }));
-    h += row('Line style', ctl(T, 'style', 'select', l.style, { options: OPTS.lineStyle }));
+    if (!allRel) h += row('Line style', ctl(T, 'style', 'select', l.style, { options: OPTS.lineStyle }));
     h += row('Label color', ctl(T, 'labelColor', 'color', l.labelColor));
-    h += `<h3>Ends</h3>`;
-    h += irow('Start', iconCtl(T, 'startEnd', ICON_SETS.end('start'), l.startEnd, true), true);
-    h += irow('Finish', iconCtl(T, 'endEnd', ICON_SETS.end('finish'), l.endEnd, true), true);
+    if (!allRel) {
+      h += `<h3>Ends</h3>`;
+      h += irow('Start', iconCtl(T, 'startEnd', ICON_SETS.end('start'), l.startEnd, true), true);
+      h += irow('Finish', iconCtl(T, 'endEnd', ICON_SETS.end('finish'), l.endEnd, true), true);
+    }
     h += `<h3>Connectors</h3>`;
     h += irow('Start', iconCtl(T, 'startConn', ICON_SETS.conn('start'), l.startConn));
     h += irow('Finish', iconCtl(T, 'endConn', ICON_SETS.conn('finish'), l.endConn));
@@ -2026,9 +2856,10 @@ function refreshProps() {
       h += row('Start side', sideCtl('from'));
       h += row('Finish side', sideCtl('to'));
     }
-    h += `<div class="btns"><button class="btn" data-act="swap">Swap direction</button>
+    h += `<div class="btns">${allRel ? '' : '<button class="btn" data-act="swap">Swap direction</button>'}
       <button class="btn" data-act="defLink" title="Use this style for new links">Set as default style</button>
-      <button class="btn danger" data-act="delete">Delete</button></div>`;
+      <button class="btn" data-act="delete" title="Remove from this view (Del)">Remove from view</button>
+      ${links.some(x => x.rel) ? '<button class="btn danger" data-act="delModelSel">Delete from model</button>' : ''}</div>`;
   }
   inspector.innerHTML = h;
 }
@@ -2042,7 +2873,7 @@ function connectorsSection(b) {
       const e = ends.get(l.id)[w];
       const o = l[w === 'from' ? 'to' : 'from'];
       const ob = o.block && bmap.get(o.block);
-      const other = ob ? (o.block === b.id ? 'itself' : htmlToText(ob.title) || 'untitled block') : 'free end';
+      const other = ob ? (o.block === b.id ? 'itself' : blockName(ob)) : 'free end';
       items.push({ l, w, side: e.side, t: e.t, other });
     }
   }
@@ -2064,6 +2895,32 @@ function connectorsSection(b) {
   return h;
 }
 
+/* fields that edit the model, the view or the workspace rather than the selection */
+function changeType(el, t) {
+  const old = el.type, os = typeShape(old), ns = typeShape(t);
+  el.type = t;
+  for (const v of views) for (const b of v.blocks) if (b.element === el.id) {
+    if (b.fill === typeColor(old)) b.fill = typeColor(t);
+    if (b.shape === os.shape) b.shape = ns.shape;
+    if (b.radius === os.radius) b.radius = ns.radius;
+  }
+}
+function applyMeta(el) {
+  const d = el.dataset;
+  const v = el.type === 'checkbox' ? el.checked : el.value;
+  if (d.p) { const o = d.eid ? elById(d.eid) : relById(d.rid); if (o && o.properties[+d.i]) o.properties[+d.i][d.p] = v; return true; }
+  if (d.m) { const o = elById(d.eid); if (!o) return true; if (d.m === 'type') changeType(o, v); else o[d.m] = v; return true; }
+  if (d.r) {
+    const o = relById(d.rid); if (!o) return true;
+    o[d.r] = v;
+    if (d.r === 'type') { delete o.accessType; delete o.directed; if (v === 'access') o.accessType = 'write'; if (v === 'association') o.directed = false; }
+    return true;
+  }
+  if (d.vf) { doc[d.vf] = v; return true; }
+  if (d.mf) { model[d.mf] = v; return true; }
+  return false;
+}
+const isMeta = el => !!(el.dataset && (el.dataset.p || el.dataset.m || el.dataset.r || el.dataset.vf || el.dataset.mf));
 function applyField(el) {
   let v;
   if (el.type === 'checkbox') v = el.checked;
@@ -2109,12 +2966,26 @@ inspector.addEventListener('mouseover', e => {
 inspector.addEventListener('mouseleave', () => { if (hoverConn) { hoverConn = null; render(); } });
 inspector.addEventListener('input', e => {
   const el = e.target;
+  if (isMeta(el)) {
+    if (!inspSnap) inspSnap = snapshot();
+    applyMeta(el); render();
+    if (el.dataset.vf === 'name') refreshViewTabs();
+    return;
+  }
   if (!el.dataset || !el.dataset.k) return;
   if (!inspSnap) inspSnap = snapshot();
   if (applyField(el)) render();
 });
 inspector.addEventListener('change', e => {
   const el = e.target;
+  if (isMeta(el)) {
+    if (!inspSnap) inspSnap = snapshot();
+    applyMeta(el);
+    pushUndo(inspSnap); inspSnap = null;
+    render(); refreshLeft(); refreshViewTabs();
+    if (el.tagName === 'SELECT' || el.type === 'checkbox') { refreshProps(); updateHint(); }
+    return;
+  }
   if (!el.dataset || !el.dataset.k) return;
   if (!inspSnap) inspSnap = snapshot();
   applyField(el);
@@ -2135,9 +3006,22 @@ inspector.addEventListener('click', e => {
   if (!btn) return;
   const act = btn.dataset.act;
   const snap = snapshot();
+  const id = btn.dataset.id;
   switch (act) {
-    case 'addBlock': addBlockCenter(); return;
     case 'settings': openSettings(); return;
+    case 'catalogs': openCatalogs(); return;
+    case 'newView': createView(); return;
+    case 'dupView': duplicateView(); return;
+    case 'delView': deleteView(); return;
+    case 'gotoView': gotoView(btn.dataset.view, id); return;
+    case 'pickModel': selectModel(id); return;
+    case 'revealModel': selectModel(id); setLeftTab('model'); { const it = modelPanel.querySelector(`.tree-i[data-id="${CSS.escape(id)}"]`); if (it) it.scrollIntoView({ block: 'center' }); } return;
+    case 'addToView': { const el = elById(id); if (el) { addItemCenter(el.type, el); modelSel = id; refreshAll(); render(); } return; }
+    case 'delModel': deleteFromModel([id]); return;
+    case 'delModelSel': deleteFromModel(selectedModelIds()); return;
+    case 'addProp': { const o = btn.dataset.eid ? elById(btn.dataset.eid) : relById(btn.dataset.rid); if (o) o.properties.push({ key: '', value: '' }); break; }
+    case 'delProp': { const o = btn.dataset.eid ? elById(btn.dataset.eid) : relById(btn.dataset.rid); if (o) o.properties.splice(+btn.dataset.i, 1); break; }
+    case 'resetStyle': for (const b of selBlocks()) { const el = elById(b.element); if (!el) continue; const sh = typeShape(el.type); Object.assign(b, { fill: typeColor(el.type), stroke: '#4a5568', shape: sh.shape, radius: sh.radius }); } break;
     case 'icon': for (const b of selBlocks()) b.icon = btn.dataset.icon; break;
     case 'front': reorder(true); return;
     case 'back': reorder(false); return;
@@ -2166,11 +3050,12 @@ inspector.addEventListener('click', e => {
 const flowById = id => doc.flows.find(f => f.id === id);
 function elemName(id) {
   const b = bmap.get(id) || doc.blocks.find(x => x.id === id);
-  if (b) return htmlToText(b.title) || 'Untitled block';
+  if (b) return blockName(b);
   const l = linkById(id);
   if (!l) return '(deleted)';
-  const end = e => { const eb = e.block && doc.blocks.find(x => x.id === e.block); return eb ? (htmlToText(eb.title) || 'block') : 'free end'; };
-  return (l.label ? l.label + ': ' : '') + end(l.from) + ' → ' + end(l.to);
+  const end = e => { const eb = e.block && doc.blocks.find(x => x.id === e.block); return eb ? blockName(eb) : 'free end'; };
+  const r = l.rel && relById(l.rel), lbl = effLink(l).label;
+  return (r ? REL_TYPES[r.type].name + (lbl ? ` “${lbl}”` : '') + ': ' : lbl ? lbl + ': ' : '') + end(l.from) + ' → ' + end(l.to);
 }
 function setSideTab(tab) {
   sideTab = tab;
@@ -2335,6 +3220,428 @@ flowsPanel.addEventListener('dragend', () => {
 });
 
 /* =====================================================================
+   Views: tabs, switching, create / duplicate / delete
+   ===================================================================== */
+function activateView(id) {
+  const v = views.find(x => x.id === id);
+  if (!v || v === doc) return;
+  if (editingId) commitEditor();
+  closeRelPicker();
+  viewports.set(doc.id, { ...view });
+  doc = v;
+  bmap = new Map(doc.blocks.map(b => [b.id, b]));
+  sel.clear(); activeFlow = null; recording = false; hoverStep = -1; hoverFlow = null;
+  const vp = viewports.get(v.id);
+  if (vp) view = { ...vp }; else requestAnimationFrame(fitView);
+  refreshAll(); render();
+}
+function createView(props = {}) {
+  const snap = snapshot();
+  const v = newView(props);
+  views.push(v);
+  pushUndo(snap);
+  const r = svg.getBoundingClientRect();
+  viewports.set(v.id, { x: r.width / 2, y: r.height / 2, k: 1 });
+  activateView(v.id);
+  return v;
+}
+function duplicateView() {
+  const snap = snapshot();
+  const c = clone(doc), map = new Map();
+  c.id = uid('v'); c.name = doc.name + ' (copy)';
+  for (const b of c.blocks) { const n = uid('b'); map.set(b.id, n); b.id = n; }
+  for (const l of c.links) { const n = uid('l'); map.set(l.id, n); l.id = n; for (const w of ['from', 'to']) if (l[w].block) l[w].block = map.get(l[w].block); }
+  for (const f of c.flows) { f.id = uid('f'); for (const st of f.steps) st.ref = map.get(st.ref) || st.ref; }
+  views.splice(views.indexOf(doc) + 1, 0, c);
+  viewports.set(c.id, { ...view });
+  pushUndo(snap);
+  activateView(c.id);
+}
+function deleteView(id = doc.id) {
+  const v = views.find(x => x.id === id);
+  if (!v || views.length < 2) return;
+  const snap = snapshot();
+  const i = views.indexOf(v);
+  if (v === doc) activateView((views[i + 1] || views[i - 1]).id);
+  views.splice(i, 1);
+  pushUndo(snap);
+  refreshAll(); render();
+  toast(`View “${v.name}” deleted. The model keeps its elements (Undo restores the view).`);
+}
+function gotoView(viewId, modelId) { activateView(viewId); if (modelId) selectModel(modelId); }
+
+/* select a model element / relationship (from the tree, the inspector or a catalog) */
+function selectModel(id) {
+  modelSel = id;
+  const b = doc.blocks.find(x => x.element === id), l = doc.links.find(x => x.rel === id);
+  sel = new Set(b ? [b.id] : l ? [l.id] : []);
+  if (b) ensureVisible(b);
+  refreshAll(); render();
+}
+function ensureVisible(b) {
+  const r = svg.getBoundingClientRect();
+  const x1 = view.x + b.x * view.k, y1 = view.y + b.y * view.k, x2 = x1 + b.w * view.k, y2 = y1 + b.h * view.k;
+  if (x1 >= 0 && y1 >= 0 && x2 <= r.width && y2 <= r.height) return;
+  view.x = r.width / 2 - (b.x + b.w / 2) * view.k; view.y = r.height / 2 - (b.y + b.h / 2) * view.k;
+}
+
+const viewTabs = $('#viewTabs');
+function refreshViewTabs() {
+  if (viewTabs.querySelector('input')) return; // a tab is being renamed
+  viewTabs.innerHTML = views.map(v => {
+    const vp = v.viewpoint !== 'none' ? `\n${VIEWPOINTS[v.viewpoint].name} viewpoint` : '';
+    const ph = v.phase ? admPhase(v.phase) : null;
+    return `<button class="vtab${v === doc ? ' on' : ''}" data-view="${esc(v.id)}" title="${esc(v.name)}${esc(vp)}${ph ? esc('\nADM: ' + ph.name) : ''}\nDouble-click to rename">` +
+      `${ph ? `<span class="ph" style="background:${ADM_STATUS[phaseState(ph.id).status].color === '#e2e8f0' ? '#64748b' : ADM_STATUS[phaseState(ph.id).status].color}">${esc(ph.code)}</span>` : ''}<span class="nm">${esc(v.name || 'Untitled view')}</span></button>`;
+  }).join('') + `<button class="vadd" data-act="newView" title="New view">+</button>`;
+}
+viewTabs.addEventListener('click', e => {
+  if (e.target.closest('[data-act=newView]')) { createView(); return; }
+  const t = e.target.closest('.vtab');
+  if (t && !t.querySelector('input')) activateView(t.dataset.view);
+});
+viewTabs.addEventListener('dblclick', e => {
+  const t = e.target.closest('.vtab'), v = t && views.find(x => x.id === t.dataset.view);
+  if (!v) return;
+  const nm = t.querySelector('.nm');
+  nm.innerHTML = `<input type="text" value="${esc(v.name)}">`;
+  const inp = nm.querySelector('input');
+  inp.focus(); inp.select();
+  let done = false;
+  const finish = ok => {
+    if (done) return; done = true;
+    const name = inp.value.trim();
+    inp.remove();
+    if (ok && name && name !== v.name) { const snap = snapshot(); v.name = name; pushUndo(snap); }
+    refreshAll();
+  };
+  inp.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Enter') finish(true); if (ev.key === 'Escape') finish(false); });
+  inp.addEventListener('blur', () => finish(true));
+});
+
+/* =====================================================================
+   Left panel: palette, model browser, ADM
+   ===================================================================== */
+const MIME_TYPE = 'application/x-archtogaf-type', MIME_EL = 'application/x-archtogaf-element';
+function setLeftTab(tab) {
+  leftTab = tab;
+  for (const b of document.querySelectorAll('#leftTabs [data-ltab]')) b.classList.toggle('on', b.dataset.ltab === tab);
+  palettePanel.hidden = tab !== 'palette'; modelPanel.hidden = tab !== 'model'; admPanel.hidden = tab !== 'adm';
+  refreshLeft();
+}
+$('#leftTabs').addEventListener('click', e => { const b = e.target.closest('[data-ltab]'); if (b) setLeftTab(b.dataset.ltab); });
+function refreshLeft() {
+  if (leftTab === 'palette') refreshPalette();
+  else if (leftTab === 'model') refreshModelTree();
+  else refreshAdm();
+}
+function updateHint() {
+  // keep the double-click type inside the view's viewpoint
+  if (curType !== 'note' && !viewpointAllows(doc.viewpoint, curType)) curType = Object.keys(ELEMENT_TYPES).find(t => viewpointAllows(doc.viewpoint, t)) || curType;
+  $('#hint').textContent = `Double-click: new ${curType === 'note' ? 'note' : typeName(curType)} · Shift + drag from an element: relationship · Double-click an element: rename`;
+}
+
+function refreshPalette() {
+  const vp = doc.viewpoint || 'none';
+  let h = '';
+  if (vp !== 'none') h += `<div class="pal-note">Viewpoint <b>${esc(VIEWPOINTS[vp].name)}</b>: other types are hidden.</div>`;
+  for (const [lk, L] of Object.entries(LAYERS)) {
+    const types = Object.values(ELEMENT_TYPES).filter(t => t.layer === lk && viewpointAllows(vp, t.id));
+    if (!types.length) continue;
+    h += `<div class="pal-layer"><i style="background:${L.color}"></i>${esc(L.name)}</div><div class="pal-grid">`;
+    h += types.map(t => `<button class="pal-item${t.id === curType ? ' cur' : ''}" draggable="true" data-type="${t.id}" title="${esc(t.name)}" style="background:${typeColor(t.id)}">${typeGlyph(t.id, 18)}</button>`).join('');
+    if (lk === 'other') h += `<button class="pal-item${curType === 'note' ? ' cur' : ''}" draggable="true" data-type="note" title="Note (free text, not in the model)" style="background:#fffbea">${glyphSvg('note', 18)}</button>`;
+    h += `</div>`;
+  }
+  h += `<div class="pal-note" style="margin-top:14px">Click a type to add it to the view, or drag it onto the canvas. Double-click the canvas to add one more of the selected type.</div>`;
+  palettePanel.innerHTML = h;
+}
+palettePanel.addEventListener('click', e => {
+  const b = e.target.closest('[data-type]');
+  if (!b) return;
+  curType = b.dataset.type;
+  addItemCenter(curType);
+});
+palettePanel.addEventListener('dragstart', e => {
+  const b = e.target.closest && e.target.closest('[data-type]');
+  if (!b) return;
+  e.dataTransfer.setData(MIME_TYPE, b.dataset.type);
+  e.dataTransfer.effectAllowed = 'copy';
+});
+
+let modelQuery = '';
+function refreshModelTree() {
+  if (!modelPanel.querySelector('#modelTree')) {
+    modelPanel.innerHTML = `<input class="search" id="modelSearch" type="search" placeholder="Search the model…"><div id="modelTree"></div>`;
+    modelPanel.querySelector('#modelSearch').addEventListener('input', e => { modelQuery = e.target.value; refreshModelTree(); });
+  }
+  const q = modelQuery.trim().toLowerCase();
+  const match = (...t) => !q || t.some(x => String(x || '').toLowerCase().includes(q));
+  const usedIn = new Map();
+  for (const v of views) for (const b of v.blocks) if (b.element) { if (!usedIn.has(b.element)) usedIn.set(b.element, new Set()); usedIn.get(b.element).add(v.id); }
+  let h = '';
+  for (const [lk, L] of Object.entries(LAYERS)) {
+    const els = model.elements.filter(e => ELEMENT_TYPES[e.type].layer === lk && match(e.name, typeName(e.type), e.documentation))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    if (!els.length) continue;
+    const open = !collapsed.has(lk) || q;
+    h += `<div class="tree-h" data-fold="${lk}"><span>${open ? '▾' : '▸'}</span><i style="background:${L.color}"></i>${esc(L.name)}<span class="cnt">${els.length}</span></div>`;
+    if (open) h += els.map(e => {
+      const n = usedIn.get(e.id)?.size || 0;
+      return `<div class="tree-i${modelSel === e.id ? ' on' : ''}" draggable="true" data-id="${esc(e.id)}" title="${esc(typeName(e.type))}: ${n ? 'in ' + n + ' view' + (n > 1 ? 's' : '') : 'not in any view'}. Drag onto the canvas to show it.">` +
+        `${typeGlyph(e.type, 15)}<span class="nm${n ? '' : ' unused'}">${esc(e.name || '(unnamed)')}</span>${n ? `<span class="uses">${n}</span>` : ''}</div>`;
+    }).join('');
+  }
+  if (!h) h = `<div class="muted" style="font-size:12px;margin:8px 2px">${q ? 'No element matches.' : 'The model is empty. Add elements from the Palette.'}</div>`;
+  const rels = model.relationships.filter(r => match(r.name, REL_TYPES[r.type].name, elById(r.source)?.name, elById(r.target)?.name));
+  if (rels.length) {
+    const open = !collapsed.has('relations') || q;
+    h += `<div class="tree-h" data-fold="relations"><span>${open ? '▾' : '▸'}</span>Relationships<span class="cnt">${rels.length}</span></div>`;
+    if (open) h += rels.map(r => `<div class="tree-i${modelSel === r.id ? ' on' : ''}" data-id="${esc(r.id)}" title="${esc(REL_TYPES[r.type].name)}${r.name ? ': ' + esc(r.name) : ''}"><span class="rico">${relIcon(r.type)}</span>` +
+      `<span class="nm">${esc(elById(r.source)?.name)} → ${esc(elById(r.target)?.name)}</span></div>`).join('');
+  }
+  const vs = views.filter(v => match(v.name, v.description));
+  if (vs.length) {
+    const open = !collapsed.has('views') || q;
+    h += `<div class="tree-h" data-fold="views"><span>${open ? '▾' : '▸'}</span>Views<span class="cnt">${vs.length}</span></div>`;
+    if (open) h += vs.map(v => `<div class="tree-i${v === doc ? ' on' : ''}" data-view="${esc(v.id)}">${glyphSvg('grouping', 15)}<span class="nm">${esc(v.name)}</span>${v.phase ? `<span class="uses">${esc(admPhase(v.phase).code)}</span>` : ''}</div>`).join('');
+  }
+  $('#modelTree').innerHTML = h;
+}
+modelPanel.addEventListener('click', e => {
+  const f = e.target.closest('[data-fold]');
+  if (f) { const k = f.dataset.fold; collapsed.has(k) ? collapsed.delete(k) : collapsed.add(k); refreshModelTree(); return; }
+  const v = e.target.closest('[data-view]');
+  if (v) { activateView(v.dataset.view); return; }
+  const it = e.target.closest('.tree-i[data-id]');
+  if (it) selectModel(it.dataset.id);
+});
+modelPanel.addEventListener('dblclick', e => {
+  const it = e.target.closest('.tree-i[data-id]'), el = it && elById(it.dataset.id);
+  if (!el || doc.blocks.some(b => b.element === el.id)) return;
+  const v = viewsUsing(el.id, false)[0];
+  if (v) gotoView(v.id, el.id); else { addItemCenter(el.type, el); selectModel(el.id); }
+});
+modelPanel.addEventListener('dragstart', e => {
+  const it = e.target.closest && e.target.closest('.tree-i[data-id]');
+  if (!it || !elById(it.dataset.id)) { e.preventDefault(); return; }
+  e.dataTransfer.setData(MIME_EL, it.dataset.id);
+  e.dataTransfer.effectAllowed = 'copy';
+});
+stage.addEventListener('dragover', e => {
+  const t = [...e.dataTransfer.types];
+  if (t.includes(MIME_TYPE) || t.includes(MIME_EL)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
+});
+stage.addEventListener('drop', e => {
+  const type = e.dataTransfer.getData(MIME_TYPE), eid = e.dataTransfer.getData(MIME_EL);
+  if (!type && !eid) return;
+  e.preventDefault(); e.stopPropagation();
+  const p = toWorld(e);
+  if (eid) { const el = elById(eid); if (el) { addItemAt(el.type, p, el); modelSel = el.id; refreshAll(); render(); } }
+  else { curType = type; addItemAt(type, p); }
+});
+
+/* ---------- ADM ---------- */
+const phaseState = id => adm.phases[id] || { status: 'none', notes: '', checked: {} };
+const ensurePhase = id => (adm.phases[id] = adm.phases[id] || { status: 'none', notes: '', checked: {} });
+function admWheelSvg() {
+  const cx = 120, cy = 132, R = 86;
+  const ring = { A: -90, B: -45, C: 0, D: 45, E: 90, F: 135, G: 180, H: 225 };
+  const at = id => ({ x: cx + R * Math.cos(ring[id] * Math.PI / 180), y: cy + R * Math.sin(ring[id] * Math.PI / 180) });
+  let s = `<svg class="adm-wheel" width="240" height="252" viewBox="0 0 240 252" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif">`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#cbd5e1" stroke-width="2"/>`;
+  for (const id of Object.keys(ring)) { const p = at(id); s += `<line x1="${cx}" y1="${cy}" x2="${f1(p.x)}" y2="${f1(p.y)}" stroke="#e2e8f0" stroke-width="1.5"/>`; }
+  // direction of the cycle: small chevrons between phases
+  for (const a of Object.values(ring)) {
+    const m = (a + 22.5) * Math.PI / 180, x = cx + R * Math.cos(m), y = cy + R * Math.sin(m), rot = a + 22.5 + 90;
+    s += `<path d="M-3,-4 L2,0 L-3,4" transform="translate(${f1(x)},${f1(y)}) rotate(${f1(rot)})" fill="none" stroke="#94a3b8" stroke-width="1.6"/>`;
+  }
+  s += `<line x1="38" y1="36" x2="${f1(at('A').x - 18)}" y2="${f1(at('A').y - 8)}" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+  const node = (id, x, y, rad) => {
+    const p = admPhase(id), st = ADM_STATUS[phaseState(id).status], on = admSel === id;
+    return `<g class="ph" data-phase="${id}"><title>${esc(p.name)}: ${st.name}</title><circle cx="${f1(x)}" cy="${f1(y)}" r="${rad}" fill="${st.color}" stroke="${on ? '#2563eb' : '#ffffff'}" stroke-width="${on ? 3 : 2}"/>` +
+      `<text x="${f1(x)}" y="${f1(y + 1)}" text-anchor="middle" dominant-baseline="middle" font-size="${id === 'RM' ? 10.5 : 14}" font-weight="700" fill="${st.text}" pointer-events="none">${id === 'RM' ? 'Req.' : p.code}</text></g>`;
+  };
+  for (const id of Object.keys(ring)) { const p = at(id); s += node(id, p.x, p.y, 22); }
+  s += node('prelim', 28, 26, 18);
+  s += node('RM', cx, cy, 30);
+  return s + '</svg>';
+}
+function refreshAdm() {
+  const p = admPhase(admSel) || ADM_PHASES[1], st = phaseState(p.id);
+  let h = admWheelSvg();
+  h += `<div class="adm-legend">${Object.values(ADM_STATUS).map(x => `<span><i style="background:${x.color}"></i>${x.name}</span>`).join('')}</div>`;
+  h += `<h3>${p.id === 'prelim' || p.id === 'RM' ? '' : 'Phase ' + p.code + ' · '}${esc(p.name)}</h3>`;
+  h += `<div class="muted" style="font-size:12px;margin-bottom:6px">${esc(p.objectives)}</div>`;
+  h += row('Status', `<select data-adm="status">${Object.entries(ADM_STATUS).map(([k, x]) => `<option value="${k}"${k === st.status ? ' selected' : ''}>${x.name}</option>`).join('')}</select>`);
+  h += `<textarea data-adm="notes" rows="3" class="search" style="resize:vertical" placeholder="Notes, decisions, open points…">${esc(st.notes)}</textarea>`;
+  const vs = views.filter(v => v.phase === p.id);
+  h += `<h3>Views ${cntSpan(vs.length)}</h3>`;
+  h += vs.map(v => `<button class="vlink" data-view="${esc(v.id)}">${v === doc ? '● ' : ''}${esc(v.name)}<span class="muted" style="margin-left:auto;font-size:11px">${esc(VIEWPOINTS[v.viewpoint].name)}</span></button>`).join('');
+  h += `<div class="btns"><button class="btn" data-adm-act="newView">+ New view for this phase</button>${doc.phase !== p.id ? `<button class="btn" data-adm-act="assign" title="Set the ADM phase of the current view">Assign current view</button>` : ''}</div>`;
+  const all = Object.values(p.items).flat(), done = all.filter(x => st.checked[x]).length;
+  h += `<h3>Artifacts &amp; deliverables ${cntSpan(done + '/' + all.length)}</h3><div class="chk-list">`;
+  for (const [grp, items] of Object.entries(p.items)) {
+    h += `<div class="grp">${esc(grp)}</div>` + items.map(it => `<label class="${st.checked[it] ? 'done' : ''}"><input type="checkbox" data-chk="${esc(it)}"${st.checked[it] ? ' checked' : ''}><span>${esc(it)}</span></label>`).join('');
+  }
+  admPanel.innerHTML = h + '</div>';
+}
+let admSnap = null;
+admPanel.addEventListener('click', e => {
+  const ph = e.target.closest('[data-phase]');
+  if (ph) { admSel = ph.dataset.phase; refreshAdm(); return; }
+  const v = e.target.closest('[data-view]');
+  if (v) { activateView(v.dataset.view); return; }
+  const a = e.target.closest('[data-adm-act]'), p = admPhase(admSel);
+  if (!a || !p) return;
+  if (a.dataset.admAct === 'newView') createView({ name: p.name, phase: p.id, viewpoint: p.vp });
+  if (a.dataset.admAct === 'assign') { const snap = snapshot(); doc.phase = p.id; if (doc.viewpoint === 'none' && !doc.blocks.length) doc.viewpoint = p.vp; pushUndo(snap); refreshAll(); }
+});
+admPanel.addEventListener('input', e => {
+  if (e.target.dataset.adm !== 'notes') return;
+  if (!admSnap) admSnap = snapshot();
+  ensurePhase(admSel).notes = e.target.value;
+});
+admPanel.addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset.adm === 'notes') { if (admSnap) pushUndo(admSnap); admSnap = null; return; }
+  const snap = snapshot(), st = ensurePhase(admSel);
+  if (el.dataset.adm === 'status') st.status = el.value;
+  else if (el.dataset.chk) { if (el.checked) st.checked[el.dataset.chk] = true; else delete st.checked[el.dataset.chk]; }
+  else return;
+  pushUndo(snap);
+  refreshAdm(); refreshViewTabs();
+});
+
+/* =====================================================================
+   Catalogs and matrices (TOGAF artifacts generated from the model)
+   ===================================================================== */
+const CATALOG_PRESETS = [
+  ['Application Portfolio catalog', ['applicationComponent']],
+  ['Interface catalog', ['applicationInterface', 'businessInterface', 'technologyInterface']],
+  ['Organization/Actor catalog', ['businessActor']],
+  ['Role catalog', ['businessRole']],
+  ['Stakeholder catalog', ['stakeholder']],
+  ['Business Service/Function catalog', ['businessService', 'businessFunction']],
+  ['Process/Event/Control/Product catalog', ['businessProcess', 'businessEvent', 'product']],
+  ['Driver/Goal/Objective catalog', ['driver', 'goal', 'outcome']],
+  ['Principles catalog', ['principle']],
+  ['Requirements catalog', ['requirement', 'constraint']],
+  ['Capability catalog', ['capability']],
+  ['Data Entity/Data Component catalog', ['businessObject', 'dataObject']],
+  ['Technology Portfolio catalog', ['node', 'device', 'systemSoftware', 'technologyService']],
+  ['Location catalog', ['location']],
+  ['Work Package catalog', ['workPackage', 'deliverable']]
+];
+const MATRIX_PRESETS = [
+  ['Actor/Role matrix', 'businessActor', 'businessRole'],
+  ['Application/Function matrix', 'applicationComponent', 'businessFunction'],
+  ['Application/Organization matrix', 'applicationComponent', 'businessActor'],
+  ['Role/Application matrix', 'businessRole', 'applicationComponent'],
+  ['Application/Data matrix', 'applicationComponent', 'dataObject'],
+  ['Data Entity/Business Function matrix', 'dataObject', 'businessFunction'],
+  ['Application Interaction matrix', 'applicationComponent', 'applicationComponent'],
+  ['Application/Technology matrix', 'node', 'applicationComponent'],
+  ['Business Interaction matrix', 'businessActor', 'businessActor'],
+  ['Process/Application matrix', 'businessProcess', 'applicationService'],
+  ['Stakeholder/Goal matrix', 'stakeholder', 'goal'],
+  ['Capability/Application matrix', 'capability', 'applicationComponent']
+];
+const cat = { tab: 'elements', preset: '', layer: '', type: '', q: '', rows: 'applicationComponent', cols: 'businessFunction' };
+function openCatalogs(tab) { if (tab) cat.tab = tab; renderCatBar(); renderCatBody(); $('#catDlg').showModal(); }
+const typeSelect = (k, cur, any) => `<select data-c="${k}">${any ? `<option value="">${any}</option>` : ''}${typeOptions(cur)}</select>`;
+function renderCatBar() {
+  const tabs = [['elements', 'Elements'], ['relationships', 'Relationships'], ['matrix', 'Matrix']];
+  let h = `<div class="seg">${tabs.map(([k, l]) => `<button type="button" data-ctab="${k}" class="${cat.tab === k ? 'on' : ''}" style="padding:0 10px">${l}</button>`).join('')}</div>`;
+  if (cat.tab === 'elements') {
+    h += `<select data-c="preset"><option value="">All elements</option>${CATALOG_PRESETS.map(([n]) => `<option${n === cat.preset ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
+    if (!cat.preset) h += `<select data-c="layer"><option value="">Any layer</option>${Object.entries(LAYERS).map(([k, L]) => `<option value="${k}"${k === cat.layer ? ' selected' : ''}>${esc(L.name)}</option>`).join('')}</select>` + typeSelect('type', cat.type, 'Any type');
+  }
+  if (cat.tab === 'matrix') {
+    h += `<select data-c="mpreset"><option value="">Preset…</option>${MATRIX_PRESETS.map(([n]) => `<option>${esc(n)}</option>`).join('')}</select>`;
+    h += `<span class="muted">Rows</span>${typeSelect('rows', cat.rows)}<span class="muted">Columns</span>${typeSelect('cols', cat.cols)}`;
+  }
+  if (cat.tab !== 'matrix') h += `<input type="search" data-c="q" value="${esc(cat.q)}" placeholder="Filter…">`;
+  h += `<span style="margin-left:auto"></span><button class="btn" data-c-act="csv">Export CSV</button>`;
+  $('#catBar').innerHTML = h;
+}
+function catElements() {
+  const preset = CATALOG_PRESETS.find(p => p[0] === cat.preset);
+  const q = cat.q.trim().toLowerCase();
+  return model.elements.filter(e => (preset ? preset[1].includes(e.type) : (!cat.layer || ELEMENT_TYPES[e.type].layer === cat.layer) && (!cat.type || e.type === cat.type)) &&
+    (!q || [e.name, typeName(e.type), e.documentation, ...e.properties.map(p => p.value)].some(x => String(x).toLowerCase().includes(q))))
+    .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
+}
+/* the current table as plain data, shared by the screen and the CSV export */
+function catData() {
+  const propsTxt = o => o.properties.filter(p => p.key || p.value).map(p => `${p.key}=${p.value}`).join('; ');
+  if (cat.tab === 'elements') {
+    const els = catElements();
+    return {
+      head: ['Name', 'Type', 'Layer', 'Documentation', 'Properties', 'Relationships', 'Views'],
+      rows: els.map(e => [e.name, typeName(e.type), LAYERS[ELEMENT_TYPES[e.type].layer].name, e.documentation, propsTxt(e),
+        model.relationships.filter(r => r.source === e.id || r.target === e.id).length, viewsUsing(e.id, false).map(v => v.name).join(', ')]),
+      ids: els.map(e => e.id)
+    };
+  }
+  if (cat.tab === 'relationships') {
+    const q = cat.q.trim().toLowerCase();
+    const rels = model.relationships.filter(r => {
+      const S = elById(r.source), T = elById(r.target);
+      return !q || [S.name, T.name, r.name, REL_TYPES[r.type].name, typeName(S.type), typeName(T.type)].some(x => String(x).toLowerCase().includes(q));
+    });
+    return {
+      head: ['Source', 'Source type', 'Relationship', 'Target', 'Target type', 'Name', 'Documentation', 'Views'],
+      rows: rels.map(r => { const S = elById(r.source), T = elById(r.target); return [S.name, typeName(S.type), REL_TYPES[r.type].name + (r.type === 'access' ? ` (${r.accessType})` : ''), T.name, typeName(T.type), r.name, r.documentation, viewsUsing(r.id, true).map(v => v.name).join(', ')]; }),
+      ids: rels.map(r => r.id)
+    };
+  }
+  const rows = model.elements.filter(e => e.type === cat.rows).sort((a, b) => a.name.localeCompare(b.name));
+  const cols = model.elements.filter(e => e.type === cat.cols).sort((a, b) => a.name.localeCompare(b.name));
+  const cell = (a, b) => model.relationships.filter(r => (r.source === a.id && r.target === b.id) || (r.source === b.id && r.target === a.id))
+    .map(r => (r.source === a.id ? '' : '← ') + REL_TYPES[r.type].name.toLowerCase()).join(', ');
+  return { head: [typeName(cat.rows) + ' \\ ' + typeName(cat.cols), ...cols.map(c => c.name)], rows: rows.map(r => [r.name, ...cols.map(c => cell(r, c))]), ids: rows.map(r => r.id), colIds: cols.map(c => c.id) };
+}
+function renderCatBody() {
+  const d = catData();
+  let h;
+  if (cat.tab === 'matrix') {
+    if (!d.rows.length || d.head.length < 2) h = `<p class="muted">The matrix needs elements of both types (${esc(typeName(cat.rows))} × ${esc(typeName(cat.cols))}). A cell shows the relationships between the row and the column element (← when the column element is the source).</p>`;
+    else h = `<table class="cat mx"><tr><th>${esc(d.head[0])}</th>${d.head.slice(1).map((c, i) => `<th class="rot" data-id="${esc(d.colIds[i])}">${esc(c)}</th>`).join('')}</tr>` +
+      d.rows.map((r, i) => `<tr><th class="click" data-id="${esc(d.ids[i])}" style="cursor:pointer">${esc(r[0])}</th>${r.slice(1).map(c => `<td class="c${c ? ' on' : ''}" title="${esc(c)}">${c ? esc(c) : ''}</td>`).join('')}</tr>`).join('') + '</table>';
+  } else if (!d.rows.length) h = `<p class="muted">Nothing to show.</p>`;
+  else h = `<table class="cat"><tr>${d.head.map(x => `<th>${esc(x)}</th>`).join('')}</tr>` +
+    d.rows.map((r, i) => `<tr class="click" data-id="${esc(d.ids[i])}">${r.map((c, j) => `<td${j === 3 && cat.tab === 'elements' ? ' style="max-width:320px"' : ''}>${esc(c)}</td>`).join('')}</tr>`).join('') + '</table>';
+  $('#catBody').innerHTML = `<div class="muted" style="font-size:12px;margin:4px 0 8px">${d.rows.length} row${d.rows.length === 1 ? '' : 's'}</div>` + h;
+}
+$('#catBar').addEventListener('click', e => {
+  const t = e.target.closest('[data-ctab]');
+  if (t) { cat.tab = t.dataset.ctab; renderCatBar(); renderCatBody(); return; }
+  if (e.target.closest('[data-c-act=csv]')) {
+    const d = catData();
+    const q = v => { v = String(v ?? ''); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const csv = [d.head, ...d.rows].map(r => r.map(q).join(',')).join('\n');
+    const name = cat.tab === 'matrix' ? `${typeName(cat.rows)}-${typeName(cat.cols)} matrix` : cat.tab === 'elements' ? (cat.preset || 'elements') : 'relationships';
+    download(name.replace(/[^\w\- ]+/g, '-') + '.csv', '﻿' + csv, 'text/csv');
+  }
+});
+$('#catBar').addEventListener('input', e => {
+  const k = e.target.dataset.c;
+  if (!k) return;
+  if (k === 'mpreset') { const p = MATRIX_PRESETS.find(x => x[0] === e.target.value); if (p) { cat.rows = p[1]; cat.cols = p[2]; } renderCatBar(); renderCatBody(); return; }
+  cat[k] = e.target.value;
+  if (k === 'preset' || k === 'layer') { if (k === 'layer') cat.type = ''; renderCatBar(); }
+  renderCatBody();
+});
+$('#catBody').addEventListener('click', e => {
+  const r = e.target.closest('[data-id]');
+  if (!r) return;
+  $('#catDlg').close();
+  selectModel(r.dataset.id);
+  setLeftTab('model');
+});
+
+/* =====================================================================
    Settings dialog
    ===================================================================== */
 const SETTINGS_SPEC = [
@@ -2348,14 +3655,19 @@ const SETTINGS_SPEC = [
     ['routing.cornerRadius', 'Corner radius', 'number', { min: 0, max: 80 }],
     ['routing.bendPenalty', 'Bend penalty', 'number', { min: 0, max: 1000, step: 5 }],
     ['routing.curveTension', 'Curve tension', 'number', { min: 0.05, max: 1.5, step: 0.05 }]]],
-  ['New blocks', [
+  ['Modeling', [
+    ['model.showGlyph', 'Show type icon on elements', 'checkbox'],
+    ['model.showType', 'Show type name on elements', 'checkbox'],
+    ['model.autoRelations', 'Draw existing relationships when adding an element to a view', 'checkbox'],
+    ['model.strictRelations', 'Only allow valid ArchiMate relationships', 'checkbox']]],
+  ['New notes', [
     ['block.w', 'Width', 'number', { min: 10 }], ['block.h', 'Height', 'number', { min: 10 }],
     ['block.fill', 'Fill', 'color'], ['block.stroke', 'Border color', 'color'],
     ['block.strokeWidth', 'Border width', 'number', { min: 0, step: 0.5 }],
     ['block.strokeStyle', 'Border style', 'select', { options: OPTS.strokeStyle }],
     ['block.radius', 'Corner radius', 'number', { min: 0 }],
     ['block.badgeColor', 'Badge color', 'color'], ['block.badgeTextColor', 'Badge text color', 'color']]],
-  ['New blocks: text & icon', [
+  ['New notes: text & icon', [
     ['block.textColor', 'Text color', 'color'],
     ['block.fontSize', 'Font size', 'number', { min: 6 }], ['block.align', 'Text align', 'icons', { options: ICON_SETS.align }],
     ['block.valign', 'Vertical align', 'icons', { options: ICON_SETS.valign }], ['block.iconColor', 'Icon color', 'color'],
@@ -2379,8 +3691,8 @@ function openSettings() {
       const c = ctl('settings', path, type, getPath(settings, path), extra);
       return type === 'icons' ? irow(label, c, extra.stack) : row(label, c);
     }).join('');
-  const [canvas, routing, ...rest] = SETTINGS_SPEC;
-  const h = [[canvas, routing], ...rest.map(sec => [sec])].map(col => `<div>${col.map(section).join('')}</div>`).join('');
+  const [canvas, routing, modeling, ...rest] = SETTINGS_SPEC;
+  const h = [[canvas, routing, modeling], ...rest.map(sec => [sec])].map(col => `<div>${col.map(section).join('')}</div>`).join('');
   $('#settingsBody').innerHTML = h;
   $('#settingsDlg').showModal();
 }
@@ -2392,7 +3704,7 @@ function onSettingsInput(e) {
   else if (el.type === 'number') { v = parseFloat(el.value); if (!isFinite(v)) return; }
   else v = el.value;
   setPath(settings, el.dataset.k, v);
-  markDirty(); render();
+  markDirty(); render(); refreshProps();
 }
 $('#settingsBody').addEventListener('input', onSettingsInput);
 $('#settingsBody').addEventListener('change', onSettingsInput);
@@ -2408,7 +3720,7 @@ $('#settingsDlg').addEventListener('click', e => {
   const a = e.target.closest('[data-sact]');
   if (!a) return;
   if (a.dataset.sact === 'reset') { settings = clone(DEFAULT_SETTINGS); markDirty(); render(); openSettings(); toast('Settings reset to factory values'); }
-  if (a.dataset.sact === 'saveDefaults') { storageSet('archdiagram.defaults', JSON.stringify(settings)); toast('Saved as your defaults for new diagrams'); }
+  if (a.dataset.sact === 'saveDefaults') { storageSet(STORE + 'defaults', JSON.stringify(settings)); toast('Saved as your defaults for new diagrams'); }
 });
 for (const dlg of document.querySelectorAll('dialog')) {
   dlg.addEventListener('click', e => { if (e.target.closest('[data-close]') || e.target === dlg) dlg.close(); });
@@ -2417,31 +3729,37 @@ for (const dlg of document.querySelectorAll('dialog')) {
 function openHelp() {
   const k = s => `<span class="kbd">${s}</span>`;
   $('#helpBody').innerHTML = `
-    <h4>Blocks</h4><table class="keys">
-      <tr><td>Double-click canvas</td><td>Add a block</td></tr>
-      <tr><td>Double-click block</td><td>Edit the rich-text title (Enter = new line, ${k('Esc')} or ${k('Ctrl/⌘+Enter')} to finish)</td></tr>
-      <tr><td>Drag / handles</td><td>Move / resize (hold ${k('Alt')} to ignore the grid)</td></tr>
-      <tr><td>${k('Ctrl/⌘')} + click</td><td>Add to / remove from the selection</td></tr>
-      <tr><td>${k('Shift')} or ${k('Ctrl/⌘')} + drag on empty canvas</td><td>Box select</td></tr></table>
+    <h4>Model and views</h4>
+    <p class="muted">A workspace holds one <b>model</b> (typed ArchiMate elements and relationships) and several <b>views</b> (diagrams, as tabs above the canvas).
+    An element exists once in the model and can appear in many views. Renaming it, or changing its type, updates every view.</p>
+    <table class="keys">
+      <tr><td>Palette (left)</td><td>Click a type to add it to the view, or drag it onto the canvas. The view's viewpoint decides which types are offered.</td></tr>
+      <tr><td>Double-click canvas</td><td>Add an element of the last used type</td></tr>
+      <tr><td>Double-click element</td><td>Rename (${k('Enter')} to finish). Double-click a note to edit its rich text.</td></tr>
+      <tr><td>${k('Shift')} + drag from element</td><td>Create a relationship: drop on another element, then choose its type</td></tr>
+      <tr><td>Model tab</td><td>Browse and search the model. Drag an element onto the canvas to reuse it in this view.</td></tr>
+      <tr><td>${k('Del')}</td><td>Remove the selection from this view (the model keeps it)</td></tr>
+      <tr><td>${k('Ctrl/⌘+Del')}</td><td>Delete the selected elements / relationships from the model and every view</td></tr>
+      <tr><td>Nesting</td><td>A block placed inside a grouping, node, location… moves with it. Relationships shown by nesting are not drawn as lines.</td></tr>
+      <tr><td>Copy / paste</td><td>Into a view that does not show the element yet: a reference to the same element. Otherwise: a new copy.</td></tr></table>
+    <h4>TOGAF</h4>
+    <p class="muted">The <b>ADM</b> tab shows the cycle: status and notes per phase, its typical artifacts and deliverables as a checklist, and the views of the phase.
+    <b>Catalogs</b> (toolbar) lists elements and relationships, and builds matrices such as Application/Function or Actor/Role, with CSV export.</p>
     <h4>Links</h4><table class="keys">
-      <tr><td>${k('Shift')} + drag from block</td><td>Create a link; drop on a block or on empty canvas for a free end</td></tr>
-      <tr><td>Drag link end / connector</td><td>Move it to another side, another block, or free space. Dropping near a block's center makes the side automatic.</td></tr>
+      <tr><td>Drag link end / connector</td><td>Move it to another side or block. For a relationship this reconnects it in the model.</td></tr>
       <tr><td>Drag polyline segment</td><td>Move it; it snaps into line with its neighbours</td></tr>
-      <tr><td>Double-click segment of an adjusted polyline</td><td>Reset to automatic routing</td></tr>
-      <tr><td>Double-click link</td><td>Edit its label</td></tr></table>
+      <tr><td>Double-click segment of an adjusted polyline</td><td>Reset to automatic routing</td></tr></table>
     <h4>Keyboard</h4><table class="keys">
       <tr><td>${k('Ctrl/⌘+Z')} / ${k('Ctrl/⌘+Shift+Z')}</td><td>Undo / redo</td></tr>
       <tr><td>${k('Ctrl/⌘+C')} ${k('Ctrl/⌘+V')} ${k('Ctrl/⌘+D')}</td><td>Copy, paste, duplicate</td></tr>
       <tr><td>${k('Ctrl/⌘+A')}</td><td>Select all</td></tr>
-      <tr><td>${k('Del')} / ${k('Backspace')}</td><td>Delete selection</td></tr>
       <tr><td>Arrows (${k('Shift')} = grid step)</td><td>Nudge selected blocks</td></tr>
       <tr><td>${k('Ctrl/⌘+S')} / ${k('Ctrl/⌘+Shift+S')} / ${k('Ctrl/⌘+O')}</td><td>Save / save as / open</td></tr>
       <tr><td>${k('+')} ${k('-')} ${k('F')} ${k('Ctrl/⌘+0')}</td><td>Zoom in, out, fit, 100%</td></tr>
-      <tr><td>Wheel</td><td>Zoom around the pointer</td></tr>
-      <tr><td>Drag empty canvas (or ${k('Space')} + drag)</td><td>Pan</td></tr></table>
+      <tr><td>Wheel / drag empty canvas</td><td>Zoom / pan. ${k('Shift')} + drag on empty canvas selects a box.</td></tr></table>
     <h4>Files</h4>
-    <p class="muted">Diagrams are stored as JSON. In Google Chrome / Edge the file is read and written in place (File System Access API);
-    other browsers fall back to upload/download. Work is also auto-saved in this browser. You can drop a .json file onto the window to open it.</p>
+    <p class="muted">The workspace is one JSON file. In Google Chrome / Edge it is read and written in place (File System Access API); other browsers fall back to upload/download.
+    Work is also auto-saved in this browser. Files from arch-diagram can be opened too: they become one view of notes.</p>
     <p class="muted">${esc(APP_INFO.name)} v${esc(APP_INFO.version)} — <a href="${esc(APP_INFO.github)}" target="_blank" rel="noopener">${esc(APP_INFO.github)}</a></p>`;
   $('#helpDlg').showModal();
 }
@@ -2449,34 +3767,68 @@ function openHelp() {
 /* =====================================================================
    Files (File System Access API with download/upload fallback)
    ===================================================================== */
-const FILE_TYPES = [{ description: 'Arch diagram (JSON)', accept: { 'application/json': ['.json'] } }];
+const FILE_TYPES = [{ description: 'Arch TOGAF workspace (JSON)', accept: { 'application/json': ['.json'] } }];
 function buildFileObject() {
+  viewports.set(doc.id, { ...view });
   return {
     app: { name: APP_INFO.name, version: APP_INFO.version, github: APP_INFO.github },
     format: FORMAT_VERSION,
     savedAt: new Date().toISOString(),
     settings,
-    view: { x: r2(view.x), y: r2(view.y), k: r2(view.k * 1000) / 1000 },
-    blocks: doc.blocks,
-    links: doc.links,
-    flows: doc.flows
+    model,
+    views: views.map(v => { const vp = viewports.get(v.id); return Object.assign({}, v, vp ? { vp: { x: r2(vp.x), y: r2(vp.y), k: r2(vp.k * 1000) / 1000 } } : {}); }),
+    activeView: doc.id,
+    adm
   };
 }
+function normalizeAdm(o) {
+  const out = { phases: {} };
+  const ph = o && typeof o === 'object' && o.phases && typeof o.phases === 'object' ? o.phases : {};
+  for (const p of ADM_PHASES) {
+    const x = ph[p.id];
+    if (!x || typeof x !== 'object') continue;
+    const checked = {};
+    if (x.checked && typeof x.checked === 'object') for (const k of Object.keys(x.checked)) if (x.checked[k]) checked[String(k).slice(0, 200)] = true;
+    out.phases[p.id] = { status: ADM_STATUS[x.status] ? x.status : 'none', notes: String(x.notes ?? '').slice(0, 20000), checked };
+  }
+  return out;
+}
 function loadFileObject(obj, name, handle) {
-  if (!obj || typeof obj !== 'object' || (!Array.isArray(obj.blocks) && !Array.isArray(obj.links))) throw new Error('Not an arch-diagram JSON file');
+  if (!obj || typeof obj !== 'object') throw new Error('Not a JSON object');
+  const legacy = !obj.views && (Array.isArray(obj.blocks) || Array.isArray(obj.links));
+  if (!legacy && !Array.isArray(obj.views)) throw new Error('Not an Arch TOGAF or arch-diagram file');
   const snap = snapshot();
   if (editingId) cancelEdit();
+  closeRelPicker();
   settings = deepMerge(DEFAULT_SETTINGS, obj.settings);
-  doc = normalizeDoc(obj);
-  bmap = new Map(doc.blocks.map(b => [b.id, b]));
+  const seen = new Set();
+  if (legacy) {
+    // an arch-diagram file: its blocks become notes of a single view
+    model = emptyModel();
+    views = [normalizeView(Object.assign({ name: String(name || 'Imported diagram').replace(/\.json$/i, '') }, obj), seen)];
+    for (const b of views[0].blocks) delete b.element;
+    for (const l of views[0].links) delete l.rel;
+    adm = { phases: {} };
+  } else {
+    model = normalizeModel(obj.model);
+    views = obj.views.filter(v => v && typeof v === 'object').map(v => normalizeView(v, seen));
+    adm = normalizeAdm(obj.adm);
+  }
+  if (!views.length) views = [newView({ name: 'Main view' })];
+  viewports = new Map();
+  (legacy ? [] : obj.views).forEach((v, i) => { if (v && v.vp && isFinite(v.vp.k) && views[i]) viewports.set(views[i].id, { x: num(v.vp.x, 0), y: num(v.vp.y, 0), k: clamp(num(v.vp.k, 1), 0.1, 5) }); });
+  if (legacy && obj.view && isFinite(obj.view.k)) viewports.set(views[0].id, { x: num(obj.view.x, 0), y: num(obj.view.y, 0), k: clamp(num(obj.view.k, 1), 0.1, 5) });
+  doc = views.find(v => v.id === obj.activeView) || views[0];
+  syncModel();
   if (snap !== snapshot()) { undoStack.push(snap); redoStack = []; }
-  sel.clear(); activeFlow = null; recording = false;
-  fileName = name || 'untitled.json';
-  fileHandle = handle || null;
-  if (obj.view && isFinite(obj.view.k)) view = { x: num(obj.view.x, 0), y: num(obj.view.y, 0), k: clamp(num(obj.view.k, 1), 0.1, 5) };
-  else requestAnimationFrame(fitView);
-  dirty = false; updateTitle();
-  refreshInspector(); render();
+  sel.clear(); activeFlow = null; recording = false; modelSel = null;
+  fileName = legacy ? String(name || 'untitled.json').replace(/\.json$/i, '') + '-togaf.json' : (name || 'untitled.json');
+  fileHandle = legacy ? null : (handle || null);
+  const vp = viewports.get(doc.id);
+  if (vp) view = { ...vp }; else requestAnimationFrame(fitView);
+  dirty = legacy; updateTitle();
+  refreshAll(); render();
+  if (legacy) toast('arch-diagram file imported as a view of notes. Save it as a new workspace.');
 }
 async function openFile() {
   if (window.showOpenFilePicker) {
@@ -2511,7 +3863,7 @@ async function saveFile(saveAs = false) {
       const w = await fileHandle.createWritable();
       await w.write(json); await w.close();
       dirty = false; updateTitle();
-      storageSet('archdiagram.autosave', JSON.stringify({ fileName, data: buildFileObject() }));
+      storageSet(STORE + 'autosave', JSON.stringify({ fileName, data: buildFileObject() }));
       toast('Saved ' + fileName);
     } catch (err) { if (err.name !== 'AbortError') toast('Could not save: ' + err.message, true); }
   } else {
@@ -2529,32 +3881,38 @@ function download(name, text, type) {
 function newDiagram() {
   const snap = snapshot();
   if (editingId) cancelEdit();
-  doc = { blocks: [], links: [], flows: [] };
-  activeFlow = null; recording = false;
+  closeRelPicker();
+  model = emptyModel();
+  views = [newView({ name: 'Main view' })];
+  doc = views[0];
+  adm = { phases: {} };
+  activeFlow = null; recording = false; modelSel = null;
   settings = loadUserDefaults();
+  bmap = new Map();
   if (snap !== snapshot()) { undoStack.push(snap); redoStack = []; }
   sel.clear(); fileHandle = null; fileName = 'untitled.json';
+  viewports = new Map();
   const r = svg.getBoundingClientRect();
   view = { x: r.width / 2, y: r.height / 2, k: 1 };
   markDirty(); dirty = false; updateTitle();
-  refreshInspector(); render();
-  toast('New diagram (Undo restores the previous one)');
+  refreshAll(); render();
+  toast('New workspace (Undo restores the previous one)');
 }
 function exportSvg() {
-  const saved = sel; sel = new Set();
+  const saved = sel, savedM = modelSel; sel = new Set(); modelSel = null;
   const wasEditing = editingId;
   if (wasEditing) commitEditor();
   doRender();
   const bb = contentBBox();
-  sel = saved;
+  sel = saved; modelSel = savedM;
   if (!bb) { toast('Nothing to export'); render(); return; }
   const pad = 24, x = bb.x - pad, y = bb.y - pad, w = bb.w + pad * 2, h = bb.h + pad * 2;
   const ser = new XMLSerializer();
-  const css = `.bc{width:100%;height:100%;padding:6px 10px;display:flex;gap:8px;overflow:hidden;position:relative;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.25;word-break:break-word}.bc .bt{min-width:0}.bc .bi{flex:none;display:flex;align-items:center;justify-content:center;line-height:1}.bc .bi-corner{position:absolute;left:6px;top:6px}.bc p{margin:0}`;
+  const css = `.bc{width:100%;height:100%;padding:6px 10px;display:flex;gap:8px;overflow:hidden;position:relative;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.25;word-break:break-word}.bc .bt{min-width:0}.bc .bi{flex:none;display:flex;align-items:center;justify-content:center;line-height:1}.bc .bi-corner{position:absolute;left:6px;top:6px}.bc .bi-tr{position:absolute;right:5px;top:4px;opacity:.85}.bc.el{padding:6px 22px}.bc .ty{font-size:.75em;opacity:.65;font-style:italic}.bc p{margin:0}`;
   const out = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f1(x)} ${f1(y)} ${f1(w)} ${f1(h)}" width="${Math.ceil(w)}" height="${Math.ceil(h)}"><style>${css}</style>` +
     `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" fill="${esc(settings.canvas.background)}"/>` +
-    [linkLayer, blockLayer, connLayer, flowLayer].map(n => ser.serializeToString(n)).join('') + '</svg>';
-  download(fileName.replace(/\.json$/i, '') + '.svg', out, 'image/svg+xml');
+    [blockLayer, linkLayer, connLayer, flowLayer].map(n => ser.serializeToString(n)).join('') + '</svg>';
+  download(fileName.replace(/\.json$/i, '') + ' - ' + (doc.name || 'view').replace(/[\\/:*?"<>|]+/g, '-') + '.svg', out, 'image/svg+xml');
   render();
 }
 
@@ -2586,7 +3944,7 @@ function toast(msg, isErr) {
    ===================================================================== */
 const COMMANDS = {
   new: newDiagram, open: openFile, save: () => saveFile(false), saveAs: () => saveFile(true), exportSvg,
-  addBlock: addBlockCenter, undo, redo, delete: deleteSelection,
+  addBlock: () => addItemCenter(curType), undo, redo, delete: deleteSelection, catalogs: () => openCatalogs(),
   zoomIn: () => zoomCenter(1.2), zoomOut: () => zoomCenter(1 / 1.2), fit: fitView,
   settings: openSettings, help: openHelp
 };
@@ -2616,7 +3974,10 @@ window.addEventListener('keydown', e => {
   if (mod && key === 'd') { e.preventDefault(); duplicateSelection(); return; }
   if (mod && key === 'a') { e.preventDefault(); sel = new Set([...doc.blocks.map(b => b.id), ...doc.links.map(l => l.id)]); refreshInspector(); render(); return; }
   if (mod && key === '0') { e.preventDefault(); zoomCenter(1 / view.k); return; }
+  if (mod && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); deleteFromModel(selectedModelIds()); return; }
   if (mod) return;
+  if (relPick && e.key === 'Escape') { closeRelPicker(); return; }
+  if (relPick && e.key === 'Enter') { e.preventDefault(); pickRelation(relPick.def); return; }
   if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelection(); return; }
   if (recording && (e.key === 'Escape' || e.key === 'Enter')) { e.preventDefault(); setRecording(false); return; }
   if (e.key === 'Escape') { sel.clear(); refreshInspector(); render(); return; }
@@ -2640,44 +4001,80 @@ window.addEventListener('resize', render);
 /* =====================================================================
    Demo diagram & startup
    ===================================================================== */
-function demoDiagram() {
-  const B = (id, x, y, title, props = {}) => newBlock(x, y, Object.assign({ id, title }, props));
-  const blocks = [
-    B('web', 40, 60, '<b>Web app</b><br><font size="2" color="#6b7280">React SPA</font>', { icon: 'browser' }),
-    B('mob', 40, 220, '<b>Mobile app</b><br><font size="2" color="#6b7280">iOS / Android</font>', { icon: 'mobile' }),
-    B('gw', 320, 140, '<b>API Gateway</b>', { icon: 'shield', fill: '#eef2ff', stroke: '#6366f1', badge: 'NEW', badgeColor: '#6366f1' }),
-    B('svcA', 600, 40, '<b>Orders</b><br><font size="2">service</font>', { icon: 'container' }),
-    B('svcB', 600, 240, '<b>Billing</b><br><font size="2">service</font>', { icon: 'container', highlight: true, badge: '!', badgeColor: '#e53e3e' }),
-    B('mq', 600, 420, '<b>Event bus</b>', { icon: 'queue', fill: '#fff7ed', stroke: '#ea580c', strokeStyle: 'dashed' }),
-    B('db', 900, 40, '<b>Orders DB</b><br><font size="2">PostgreSQL</font>', { icon: 'database', iconPos: 'top', h: 90, fill: '#ecfdf5', stroke: '#059669' }),
-    B('db2', 900, 240, '<b>Billing DB</b>', { icon: 'database', fill: '#ecfdf5', stroke: '#059669' })
-  ];
-  const L = (from, to, props = {}) => newLink({ block: from, side: 'auto' }, { block: to, side: 'auto' }, props);
-  const links = [
-    L('web', 'gw', { label: 'HTTPS' }),
-    L('mob', 'gw', { label: 'HTTPS' }),
-    L('gw', 'svcA', { endEnd: 'open', startConn: 'circle', connColor: '#6366f1' }),
-    L('gw', 'svcB', { endEnd: 'open', startConn: 'circle', connColor: '#6366f1' }),
-    L('svcA', 'db', { endEnd: 'arrow-wide', endConn: 'square', connColor: '#059669' }),
-    L('svcB', 'db2', { endEnd: 'arrow-wide', endConn: 'square', connColor: '#059669' }),
-    L('svcA', 'mq', { route: 'poly', style: 'dashed', color: '#ea580c', endEnd: 'triangle', label: 'events' }),
-    L('mq', 'svcB', { route: 'curve', style: 'dashed', color: '#ea580c', endEnd: 'circle-filled', startEnd: 'diamond' })
-  ];
-  const flows = [{
-    id: 'f-order', name: 'Place an order', color: FLOW_COLOR,
-    description: 'A customer places an order in the web app; billing is triggered asynchronously.',
-    steps: [
-      { ref: 'web', description: 'Customer submits the cart' },
-      { ref: links[0].id, description: 'POST /orders over HTTPS' },
-      { ref: 'gw', description: 'Authenticates and routes the request' },
-      { ref: 'svcA', description: 'Validates and creates the order' },
-      { ref: 'db', description: 'Order is stored' },
-      { ref: 'mq', description: 'OrderCreated event is published' },
-      { ref: 'svcB', description: 'Charges the customer' },
-      { ref: 'svcA', description: 'Marks the order as paid' }
-    ]
-  }];
-  return { blocks, links, flows };
+/* A small example workspace: one change (online ordering) through phases A to D */
+function loadDemo() {
+  const E = {}, R = {};
+  const el = (k, type, name, documentation = '') => { E[k] = newElement(type, { id: 'e-' + k, name, documentation }); };
+  const rel = (k, type, s, t, props = {}) => { R[k] = newRelationship(type, E[s].id, E[t].id, Object.assign({ id: 'r-' + k }, props)); };
+  // Phase A: motivation
+  el('ceo', 'stakeholder', 'CEO'); el('cust', 'stakeholder', 'Customers');
+  el('growth', 'driver', 'Online sales growth'); el('cost', 'driver', 'Cost of order handling');
+  el('lead', 'assessment', 'Order handling takes 2 days', 'Measured in Q2: manual re-entry of web orders into the ERP.');
+  el('fast', 'goal', 'Faster order handling'); el('hour', 'outcome', 'Orders confirmed within 1 hour');
+  el('digital', 'principle', 'Digital first', 'Rationale: customers expect self-service.\nImplications: every customer interaction has an online channel.');
+  el('self', 'requirement', 'Online self-service ordering');
+  rel('a1', 'association', 'ceo', 'cost'); rel('a2', 'association', 'cust', 'growth'); rel('a3', 'association', 'cost', 'lead');
+  rel('a4', 'influence', 'lead', 'fast'); rel('a5', 'influence', 'growth', 'fast');
+  rel('a6', 'realization', 'hour', 'fast'); rel('a7', 'realization', 'self', 'hour'); rel('a8', 'realization', 'digital', 'fast');
+  // Phase B: business
+  el('customer', 'businessActor', 'Customer'); el('osvc', 'businessService', 'Order service');
+  el('recv', 'businessEvent', 'Order received'); el('handle', 'businessProcess', 'Handle order'); el('ship', 'businessProcess', 'Ship goods');
+  el('clerk', 'businessRole', 'Sales clerk'); el('sales', 'businessActor', 'Sales department'); el('order', 'businessObject', 'Order');
+  rel('b1', 'serving', 'osvc', 'customer'); rel('b2', 'realization', 'handle', 'osvc'); rel('b3', 'triggering', 'recv', 'handle');
+  rel('b4', 'triggering', 'handle', 'ship'); rel('b5', 'assignment', 'clerk', 'handle'); rel('b6', 'assignment', 'sales', 'clerk');
+  rel('b7', 'access', 'handle', 'order', { accessType: 'write' });
+  // Phase C: applications
+  el('entry', 'applicationService', 'Order entry'); el('shop', 'applicationComponent', 'Web shop', 'Customer-facing web application.');
+  el('erp', 'applicationComponent', 'ERP'); el('api', 'applicationInterface', 'Order API'); el('record', 'dataObject', 'Order record');
+  rel('c1', 'serving', 'entry', 'handle'); rel('c2', 'realization', 'shop', 'entry'); rel('c3', 'flow', 'shop', 'erp', { name: 'orders' });
+  rel('c4', 'composition', 'erp', 'api'); rel('c5', 'serving', 'api', 'shop'); rel('c6', 'access', 'erp', 'record', { accessType: 'readwrite' });
+  rel('c7', 'realization', 'record', 'order'); rel('c8', 'realization', 'shop', 'self');
+  // Phase D: technology
+  el('cloud', 'node', 'Cloud platform'); el('k8s', 'systemSoftware', 'Kubernetes'); el('pg', 'systemSoftware', 'PostgreSQL');
+  el('jar', 'artifact', 'webshop.jar'); el('hosting', 'technologyService', 'Container hosting');
+  rel('d1', 'composition', 'cloud', 'k8s'); rel('d2', 'composition', 'cloud', 'pg'); rel('d3', 'realization', 'k8s', 'hosting');
+  rel('d4', 'serving', 'hosting', 'shop'); rel('d5', 'realization', 'jar', 'shop'); rel('d6', 'assignment', 'k8s', 'jar');
+  E.shop.properties = [{ key: 'Owner', value: 'E-commerce team' }, { key: 'Lifecycle', value: 'Target' }];
+  E.erp.properties = [{ key: 'Owner', value: 'IT operations' }, { key: 'Lifecycle', value: 'Baseline' }];
+
+  model = emptyModel();
+  model.name = 'Online ordering (example)';
+  model.description = 'Example workspace: move order handling online. One view per ADM phase from A to D.';
+  model.elements = Object.values(E); model.relationships = Object.values(R);
+  views = [];
+  const mkView = (props, items) => {
+    const v = newView(props);
+    for (const [k, x, y, w, h, extra] of items) v.blocks.push(elementBlock(E[k], x, y, Object.assign(w ? { w, h } : {}, extra)));
+    for (const b of v.blocks) addRelatedLinks(v, b);
+    views.push(v);
+    return v;
+  };
+  mkView({ name: 'Architecture vision', viewpoint: 'motivation', phase: 'A', description: 'Why the change: stakeholders, drivers, goals and the main requirement.' }, [
+    ['ceo', 0, 0], ['cust', 0, 160], ['cost', 240, 0], ['growth', 240, 160], ['lead', 480, 0], ['fast', 480, 160],
+    ['hour', 720, 160], ['digital', 720, 320], ['self', 960, 160]]);
+  const vb = mkView({ name: 'Order handling', viewpoint: 'business', phase: 'B', description: 'Target business process for handling customer orders.' }, [
+    ['customer', 0, 0], ['osvc', 260, 0], ['recv', 0, 180], ['handle', 260, 180], ['ship', 520, 180],
+    ['clerk', 260, 360], ['sales', 0, 360], ['order', 520, 360]]);
+  const lk = k => vb.links.find(l => l.rel === R[k].id).id, bk = k => vb.blocks.find(b => b.element === E[k].id).id;
+  vb.flows.push({ id: 'f-order', name: 'Order to delivery', description: 'From the customer order to shipping.', color: FLOW_COLOR, steps: [
+    { ref: bk('recv'), description: 'The customer submits an order online' }, { ref: lk('b3'), description: '' },
+    { ref: bk('handle'), description: 'The sales clerk checks and confirms the order' }, { ref: bk('order'), description: 'The order is recorded' },
+    { ref: bk('ship'), description: 'Goods are shipped' }] });
+  mkView({ name: 'Order system', viewpoint: 'applicationUsage', phase: 'C', description: 'Applications supporting order handling.' }, [
+    ['handle', 0, 0], ['entry', 0, 170], ['shop', 0, 340], ['api', 360, 170], ['erp', 360, 340], ['record', 360, 510]]);
+  mkView({ name: 'Hosting', viewpoint: 'technologyUsage', phase: 'D', description: 'Where the web shop runs.' }, [
+    ['cloud', 0, 0, 520, 300, { valign: 'top' }], ['k8s', 40, 60], ['pg', 300, 60], ['jar', 40, 190], ['hosting', 640, 60], ['shop', 640, 230]]);
+  adm = { phases: {
+    prelim: { status: 'done', notes: '', checked: { 'Architecture Principles': true, 'Request for Architecture Work': true } },
+    A: { status: 'done', notes: 'Vision approved by the CEO.', checked: { 'Architecture Vision': true, 'Approved Statement of Architecture Work': true } },
+    B: { status: 'progress', notes: '', checked: { 'Process Flow diagram': true } },
+    C: { status: 'progress', notes: '', checked: {} }
+  } };
+  doc = views[0];
+  bmap = new Map(doc.blocks.map(b => [b.id, b]));
+  viewports = new Map();
+  fileName = 'example.json'; fileHandle = null;
+  requestAnimationFrame(fitView);
 }
 
 function init() {
@@ -2685,16 +4082,12 @@ function init() {
   $('#ghLink').href = APP_INFO.github;
   let restored = false;
   try {
-    const saved = JSON.parse(storageGet('archdiagram.autosave') || 'null');
+    const saved = JSON.parse(storageGet(STORE + 'autosave') || 'null');
     if (saved && saved.data) { loadFileObject(saved.data, saved.fileName, null); undoStack = []; restored = true; }
   } catch (e) { restored = false; }
-  if (!restored) {
-    doc = demoDiagram();
-    bmap = new Map(doc.blocks.map(b => [b.id, b]));
-    requestAnimationFrame(fitView);
-  }
+  if (!restored) loadDemo();
   dirty = false; updateTitle();
-  refreshInspector(); render();
+  refreshAll(); render();
 }
 init();
 </script>
