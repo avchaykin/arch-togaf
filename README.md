@@ -5,7 +5,7 @@ Open `index.html` in Google Chrome (or Edge). Nothing to install, no build step 
 
 It is a fork of [arch-diagram](https://github.com/avchaykin/arch-diagram) and keeps its diagram engine: orthogonal routing around blocks, connectors, flows, rich-text notes and in-place file editing.
 What it adds is a **model**: elements and relationships that exist once and appear in many views.
-See [ROADMAP.md](ROADMAP.md) for the plan of the next versions.
+How to use it: [DOCUMENTATION.md](DOCUMENTATION.md). The plan of the next versions: [ROADMAP.md](ROADMAP.md).
 
 ## Features (v0.1)
 
