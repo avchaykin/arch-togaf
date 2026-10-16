@@ -24,7 +24,10 @@ See [ROADMAP.md](ROADMAP.md) for the plan of the next versions.
 - **Copy / paste** like Archi: into a view that does not show the element yet, a reference to the same element; otherwise a new copy.
 - **ADM**: the cycle as a wheel (Preliminary, A–H, Requirements Management). For each phase: status, objectives, notes, the checklist of its typical TOGAF artifacts and deliverables, and its views. A new view for a phase gets the phase's usual viewpoint.
 - **Catalogs & matrices** (toolbar): element and relationship catalogs with TOGAF presets (Application Portfolio, Interface, Principles, Requirements, Stakeholders…), and matrices between two element types with presets (Actor/Role, Application/Function, Application/Data, Role/Application…). All export to CSV.
-- **From arch-diagram**: blocks, links, flows, rich-text notes, routing settings, SVG export, undo/redo. Opening an arch-diagram file imports it as one view of notes.
+- **Link routing** (from arch-diagram): orthogonal polylines routed around blocks with rounded corners and spacing between parallel lines.
+  Links attach **straight across** when their blocks face each other and nothing is in the way, and **minimize bends** turns a two-bend route into a single L-bend when possible. Both can be switched per link or for all links in Settings.
+  Polyline segments can be dragged to shape a route by hand; double-click one to go back to automatic routing.
+- **From arch-diagram** also: flows, rich-text notes, connectors, SVG export, undo/redo. Opening an arch-diagram file imports it as one view of notes.
 - **Files**: the workspace is one JSON file. In Chrome the File System Access API reads and writes it in place; other browsers fall back to upload/download. Work is also auto-saved in browser storage.
 
 ## JSON format

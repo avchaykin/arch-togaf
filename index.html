@@ -224,6 +224,9 @@
   }
   .seg button:hover { background: rgba(255,255,255,.7); color: var(--ui-text); }
   .seg button.on { background: var(--ui-bg); color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.04); }
+  .seg.plain { background: transparent; padding: 0; }
+  .seg.plain button:hover { background: var(--ui-bg2); }
+  .seg.plain button.on { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
   .seg.grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
   .seg.grid button { min-width: 0; padding: 0; }
   .row.stack { grid-template-columns: 1fr; gap: 3px; }
@@ -429,7 +432,7 @@ const FORMAT_VERSION = 1;
 
 const DEFAULT_SETTINGS = {
   canvas: { background: '#f6f7f9', gridColor: '#cfd5de', gridSize: 10, showGrid: true, snap: true },
-  routing: { clearance: 18, spacing: 8, cornerRadius: 10, bendPenalty: 40, curveTension: 0.45 },
+  routing: { clearance: 18, spacing: 8, cornerRadius: 10, bendPenalty: 40, curveTension: 0.45, straight: true, minBends: true },
   block: {
     w: 160, h: 72, fill: '#ffffff', stroke: '#4a5568', strokeWidth: 1.5, strokeStyle: 'solid', radius: 8,
     textColor: '#1a202c', fontSize: 14, align: 'center', valign: 'middle',
@@ -438,7 +441,7 @@ const DEFAULT_SETTINGS = {
   },
   link: {
     route: 'poly', color: '#4a5568', width: 1.5, style: 'solid', startEnd: 'none', endEnd: 'arrow',
-    startConn: 'none', endConn: 'none', connColor: '#4a5568', connSize: 8, labelColor: '#374151'
+    startConn: 'none', endConn: 'none', connColor: '#4a5568', connSize: 8, labelColor: '#374151', straight: true, minBends: true
   },
   model: { showType: false, showGlyph: true, autoRelations: true, strictRelations: true }
 };
@@ -1034,7 +1037,7 @@ function newLink(from, to, props = {}) {
     route: d.route, color: d.color, width: d.width, style: d.style,
     startEnd: d.startEnd, endEnd: d.endEnd,
     startConn: d.startConn, endConn: d.endConn, connColor: d.connColor, connSize: d.connSize,
-    label: '', labelColor: d.labelColor
+    label: '', labelColor: d.labelColor, straight: d.straight !== false, minBends: d.minBends !== false
   }, props);
 }
 const relLink = (r, fromBlock, toBlock) => newLink({ block: fromBlock, side: 'auto' }, { block: toBlock, side: 'auto' }, { rel: r.id });
@@ -1098,6 +1101,8 @@ function normLink(o) {
   l.width = clamp(num(o.width, D.width), 0.25, 20);
   l.connSize = clamp(num(o.connSize, D.connSize), 2, 40);
   l.label = String(o.label ?? '').slice(0, 200);
+  l.straight = o.straight !== false;
+  l.minBends = o.minBends !== false;
   if (Array.isArray(o.waypoints)) {
     const w = o.waypoints.filter(p => p && typeof p === 'object').slice(0, 200).map(p => ({ x: r2(num(p.x, 0)), y: r2(num(p.y, 0)) }));
     if (w.length) l.waypoints = w;
@@ -1268,8 +1273,11 @@ function autoSide(b, target) {
 
 /* Resolve every link end to a point (+ side normal when attached).
    All connectors sharing the same block side are spread evenly; their order
-   follows the dragged position (fixed sides) or the direction to the other end. */
-function computeEnds() {
+   follows the dragged position (fixed sides) or the direction to the other end.
+   Ends listed in `straight` (see findStraight) are anchored at a given spot and
+   the other connectors of that side are spread evenly in the gaps around them. */
+let lastStraight = new Map();
+function computeEnds(straight = lastStraight) {
   const ends = new Map();
   const groups = new Map();
   const refPoint = e => {
@@ -1287,12 +1295,18 @@ function computeEnds() {
       const b = e.block && bmap.get(e.block);
       if (!b) { r[which] = { x: r2(e.x ?? 0), y: r2(e.y ?? 0), block: null }; continue; }
       const fixed = e.side && e.side !== 'auto';
-      let side = fixed ? e.side : null;
+      const st = straight.get(l.id) && straight.get(l.id)[which];
+      let side = st ? st.side : fixed ? e.side : null;
       if (!side) side = (o.block === e.block) ? (which === 'from' ? 'right' : 'top') : autoSide(b, refPoint(o));
       const other = refPoint(o);
       const horiz = side === 'top' || side === 'bottom';
-      const order = fixed ? (e.t ?? 0.5) : clamp(horiz ? (other.x - b.x) / b.w : (other.y - b.y) / b.h, 0, 1);
-      r[which] = { block: b, side, t: 0.5, order, seq: groups.size * 2 + (which === 'to' ? 1 : 0) };
+      if (st) {
+        const t = clamp(horiz ? (st.c - b.x) / b.w : (st.c - b.y) / b.h, 0, 1);
+        r[which] = { block: b, side, t, order: t, anchor: true, seq: groups.size * 2 + (which === 'to' ? 1 : 0) };
+      } else {
+        const order = fixed ? (e.t ?? 0.5) : clamp(horiz ? (other.x - b.x) / b.w : (other.y - b.y) / b.h, 0, 1);
+        r[which] = { block: b, side, t: 0.5, order, seq: groups.size * 2 + (which === 'to' ? 1 : 0) };
+      }
       const key = b.id + '|' + side;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(r[which]);
@@ -1301,7 +1315,14 @@ function computeEnds() {
   }
   for (const arr of groups.values()) {
     arr.sort((p, q) => p.order - q.order || p.seq - q.seq);
-    arr.forEach((r, i) => { r.t = (i + 1) / (arr.length + 1); });
+    // spread the free ends evenly between the anchored ones (and the side's corners)
+    let start = 0, lo = 0;
+    for (let i = 0; i <= arr.length; i++) {
+      if (i < arr.length && !arr[i].anchor) continue;
+      const hi = i < arr.length ? arr[i].t : 1, run = arr.slice(start, i);
+      run.forEach((r, j) => { r.t = lo + (hi - lo) * (j + 1) / (run.length + 1); });
+      if (i < arr.length) { lo = arr[i].t; start = i + 1; }
+    }
   }
   for (const r of ends.values()) {
     for (const w of ['from', 'to']) {
@@ -1580,6 +1601,311 @@ function nudgeOk(pts, k, c, horiz, rects) {
   if (k - 1 >= 1 && !checkSeg(pts[k - 1], mv(A))) return false;
   if (k + 2 <= n - 2 && !checkSeg(mv(B), pts[k + 2])) return false;
   return true;
+}
+
+/* ---------- straight links ----------
+   Normally a connector sits on an evenly spread slot of its side. When the
+   two ends face each other (or a free end lies in front of a side), the link
+   is instead attached straight across, as long as that does not cross any
+   block and adds no crossings with other links. */
+function geoPoints(g) {
+  if (g.type !== 'curve') return g.pts;
+  const out = [];
+  for (let i = 0; i <= 16; i++) {
+    const t = i / 16, mt = 1 - t;
+    out.push({
+      x: mt * mt * mt * g.p1.x + 3 * mt * mt * t * g.c1.x + 3 * mt * t * t * g.c2.x + t * t * t * g.p2.x,
+      y: mt * mt * mt * g.p1.y + 3 * mt * mt * t * g.c1.y + 3 * mt * t * t * g.c2.y + t * t * t * g.p2.y
+    });
+  }
+  return out;
+}
+function crossings(P, Q) {
+  const orient = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  let n = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    const a = P[i], b = P[i + 1];
+    for (let j = 0; j < Q.length - 1; j++) {
+      const c = Q[j], d = Q[j + 1];
+      const d1 = orient(c, d, a), d2 = orient(c, d, b), d3 = orient(a, b, c), d4 = orient(a, b, d);
+      if (((d1 > EPS && d2 < -EPS) || (d1 < -EPS && d2 > EPS)) && ((d3 > EPS && d4 < -EPS) || (d3 < -EPS && d4 > EPS))) n++;
+    }
+  }
+  return n;
+}
+function findStraight(ends, geo) {
+  const R = settings.routing, out = new Map();
+  if (!R.straight) return out;
+  const M = 10, minGap = Math.max(12, R.spacing * 1.5);
+  const sideKey = (b, side) => b.id + '|' + side;
+  const along = side => (side === 'top' || side === 'bottom') ? 'x' : 'y';
+  // occupied spots on every block side
+  const spots = new Map();
+  // `o`: the sort key computeEnds uses on that side, as a coordinate
+  const addSpot = (k, id, c, anchor, o = c) => { if (!spots.has(k)) spots.set(k, []); spots.get(k).push({ id, c, anchor, o }); };
+  for (const [id, r] of ends) for (const w of ['from', 'to']) {
+    const e = r[w];
+    if (!e.block) continue;
+    const ax = along(e.side), len = ax === 'x' ? e.block.w : e.block.h;
+    addSpot(sideKey(e.block, e.side), id, e[ax], false, e.block[ax] + e.order * len);
+  }
+  const lines = new Map();
+  for (const [id, g] of geo) lines.set(id, geoPoints(g));
+
+  // Can link l run straight between its two ends? Returns the sides it would use
+  // and the range [lo, hi] of positions across the travel direction.
+  const plan = l => {
+    const r = ends.get(l.id), A = r.from, B = r.to;
+    if (!A.block && !B.block) return null;
+    if (A.block && B.block && A.block === B.block) return null;
+    for (const axis of ['y', 'x']) { // 'y': travel horizontally (left/right sides)
+      const other = axis === 'y' ? 'x' : 'y';
+      const span = e => {
+        if (!e.block) return { lo: e[axis], hi: e[axis], a1: e[other], a2: e[other] };
+        const b = e.block;
+        return axis === 'y' ? { lo: b.y + M, hi: b.y + b.h - M, a1: b.x, a2: b.x + b.w } : { lo: b.x + M, hi: b.x + b.w - M, a1: b.y, a2: b.y + b.h };
+      };
+      const sa = span(A), sb = span(B);
+      const [s1, s2] = axis === 'y' ? ['right', 'left'] : ['bottom', 'top'];
+      let sideA, sideB;
+      if (sa.a2 + 4 < sb.a1) { sideA = s1; sideB = s2; } else if (sb.a2 + 4 < sa.a1) { sideA = s2; sideB = s1; } else continue;
+      const sideOk = (e, which, side) => !e.block || !l[which].side || l[which].side === 'auto' || l[which].side === side;
+      if (!sideOk(A, 'from', sideA) || !sideOk(B, 'to', sideB)) continue;
+      const lo = Math.max(sa.lo, sb.lo), hi = Math.min(sa.hi, sb.hi);
+      if (lo > hi + EPS) continue;
+      const end = (e, side) => ({ e, side, key: e.block ? sideKey(e.block, side) : `free:${e.x},${e.y}`, slot: e.block ? (e.side === side ? e[axis] : null) : e[axis] });
+      let p = end(A, sideA), q = end(B, sideB), flip = false;
+      if (p.key > q.key) { [p, q] = [q, p]; flip = true; }
+      return { l, axis, lo, hi, p, q, flip, order: ((p.slot ?? (lo + hi) / 2) + (q.slot ?? (lo + hi) / 2)) / 2 };
+    }
+    return null;
+  };
+  const point = (pl, end, c) => {
+    const e = end.e;
+    if (!e.block) return { x: e.x, y: e.y };
+    const b = e.block;
+    return pl.axis === 'y' ? { x: end.side === 'right' ? b.x + b.w : b.x, y: c } : { x: c, y: end.side === 'bottom' ? b.y + b.h : b.y };
+  };
+
+  // Links between the same two block sides are placed together, so that two or
+  // more parallel links can all run straight side by side.
+  const groups = new Map();
+  for (const l of doc.links) {
+    if (hasWaypoints(l) || l.straight === false) continue;
+    const pl = plan(l);
+    if (!pl) continue;
+    const k = pl.p.key + '#' + pl.q.key + '#' + pl.axis;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(pl);
+  }
+  // Simulate the side after placing: anchored spots stay, the others are
+  // spread evenly in the gaps between them (as computeEnds does). Reject when
+  // that packs connectors noticeably tighter than an even spread would.
+  const sideOk = (end, cs, ids) => {
+    const b = end.e.block;
+    if (!b) return true;
+    const ax = along(end.side), s0 = ax === 'x' ? b.x : b.y, s1 = s0 + (ax === 'x' ? b.w : b.h);
+    const list = (spots.get(end.key) || []).filter(sp => !ids.has(sp.id));
+    const anchors = list.filter(sp => sp.anchor).map(sp => sp.c).concat(cs).sort((u, v) => u - v);
+    const others = list.filter(sp => !sp.anchor).map(sp => sp.o).sort((u, v) => u - v);
+    const bounds = [s0, ...anchors, s1], pos = [...anchors];
+    let k = 0;
+    for (let g = 0; g < bounds.length - 1; g++) {
+      const run = [];
+      while (k < others.length && (g === bounds.length - 2 || others[k] < bounds[g + 1])) run.push(others[k++]);
+      run.forEach((_, j) => pos.push(bounds[g] + (bounds[g + 1] - bounds[g]) * (j + 1) / (run.length + 1)));
+    }
+    pos.sort((u, v) => u - v);
+    const need = Math.min(minGap, (s1 - s0) / (pos.length + 1)) * 0.9;
+    for (let i = 1; i < pos.length; i++) if (pos[i] - pos[i - 1] < need) return false;
+    return true;
+  };
+  // Best single-bend route for link l: one end leaves vertically, the other
+  // horizontally, meeting at corner K. Sides that were set by hand are kept.
+  const bestL = (l, A, B, own) => {
+    const C = R.clearance;
+    const sidesOf = (e, which) => !e.block ? [null] : (l[which].side && l[which].side !== 'auto') ? [l[which].side] : ['top', 'right', 'bottom', 'left'];
+    const vert = s => s === 'top' || s === 'bottom';
+    let best = null;
+    for (const sA of sidesOf(A, 'from')) for (const sB of sidesOf(B, 'to')) {
+      // which end runs vertically (gives K.x) and which horizontally (gives K.y)
+      let V, H, sV, sH;
+      if (sA && sB) {
+        if (vert(sA) === vert(sB)) continue;
+        [V, sV, H, sH] = vert(sA) ? [A, sA, B, sB] : [B, sB, A, sA];
+      } else if (sA) [V, sV, H, sH] = vert(sA) ? [A, sA, B, null] : [B, null, A, sA];
+      else [V, sV, H, sH] = vert(sB) ? [B, sB, A, null] : [A, null, B, sB];
+      // ranges for the vertical leg's x and the horizontal leg's y
+      let vx = V.block ? [V.block.x + M, V.block.x + V.block.w - M] : [V.x, V.x];
+      let hy = H.block ? [H.block.y + M, H.block.y + H.block.h - M] : [H.y, H.y];
+      // K must lie at least the clearance in front of each side
+      if (V.block) {
+        const edge = sV === 'bottom' ? V.block.y + V.block.h : V.block.y;
+        hy = sV === 'bottom' ? [Math.max(hy[0], edge + C), hy[1]] : [hy[0], Math.min(hy[1], edge - C)];
+      }
+      if (H.block) {
+        const edge = sH === 'right' ? H.block.x + H.block.w : H.block.x;
+        vx = sH === 'right' ? [Math.max(vx[0], edge + C), vx[1]] : [vx[0], Math.min(vx[1], edge - C)];
+      }
+      if (vx[0] > vx[1] + EPS || hy[0] > hy[1] + EPS) continue;
+      // keep the current spot when it fits, otherwise the nearest allowed spot to it
+      const pref = (e, side, axis, range) => {
+        const c = e.block ? (e.side === side ? e[axis] : (axis === 'x' ? e.block.x + e.block.w / 2 : e.block.y + e.block.h / 2)) : e[axis];
+        return r2(clamp(c, range[0], range[1]));
+      };
+      const cx = pref(V, sV, 'x', vx), cy = pref(H, sH, 'y', hy);
+      const pV = V.block ? { x: cx, y: sV === 'bottom' ? V.block.y + V.block.h : V.block.y } : { x: V.x, y: V.y };
+      const pH = H.block ? { x: sH === 'right' ? H.block.x + H.block.w : H.block.x, y: cy } : { x: H.x, y: H.y };
+      const K = { x: cx, y: cy };
+      if (dist(pV, K) < 1 || dist(pH, K) < 1) continue;
+      // no block on either leg
+      const blocked = (P, Q, own) => {
+        const x1 = Math.min(P.x, Q.x), x2 = Math.max(P.x, Q.x), y1 = Math.min(P.y, Q.y), y2 = Math.max(P.y, Q.y);
+        return doc.blocks.some(bk => bk !== own && x2 > bk.x - 1 && x1 < bk.x + bk.w + 1 && y2 > bk.y - 1 && y1 < bk.y + bk.h + 1);
+      };
+      if (blocked(pV, K, V.block) || blocked(K, pH, H.block)) continue;
+      const ids = new Set([l.id]);
+      if (V.block && !sideOk({ e: V, side: sV, key: sideKey(V.block, sV) }, [cx], ids)) continue;
+      if (H.block && !sideOk({ e: H, side: sH, key: sideKey(H.block, sH) }, [cy], ids)) continue;
+      const path = V === A ? [pV, K, pH] : [pH, K, pV];
+      let now = 0, before = 0;
+      for (const [id, q] of lines) if (id !== l.id) { now += crossings(path, q); before += crossings(own, q); }
+      if (now > before) continue;
+      const changes = (A.block && sA !== A.side ? 1 : 0) + (B.block && sB !== B.side ? 1 : 0);
+      const moved = (V.block ? Math.abs(cx - (V.side === sV ? V.x : cx)) : 0) + (H.block ? Math.abs(cy - (H.side === sH ? H.y : cy)) : 0);
+      const score = changes * 1000 + moved + now * 100;
+      if (!best || score < best.score) {
+        const stV = V.block ? { side: sV, c: cx } : null, stH = H.block ? { side: sH, c: cy } : null;
+        best = { score, path, from: V === A ? stV : stH, to: V === A ? stH : stV };
+      }
+    }
+    return best;
+  };
+  // `skip`: links whose current routes are ignored when counting crossings
+  // (the rest of the group; they get re-spread and re-routed anyway)
+  const tryPlace = (members, coords, skip) => {
+    const n = members.length, ids = new Set(members.map(m => m.l.id));
+    for (let i = 0; i < n; i++) {
+      const pl = members[i], c = coords[i];
+      if (c == null || c < pl.lo - EPS || c > pl.hi + EPS) return false;
+      if (i && c - coords[i - 1] < minGap - EPS) return false;
+    }
+    const byKey = new Map();
+    members.forEach((pl, i) => { for (const end of [pl.p, pl.q]) { if (!byKey.has(end.key)) byKey.set(end.key, { end, cs: [] }); byKey.get(end.key).cs.push(coords[i]); } });
+    for (const { end, cs } of byKey.values()) if (!sideOk(end, cs, ids)) return false;
+    const segs = [];
+    let now = 0, before = 0;
+    for (let i = 0; i < n; i++) {
+      const pl = members[i], c = coords[i];
+      const a = point(pl, pl.p, c), b = point(pl, pl.q, c);
+      const x1 = Math.min(a.x, b.x), x2 = Math.max(a.x, b.x), y1 = Math.min(a.y, b.y), y2 = Math.max(a.y, b.y);
+      if (doc.blocks.some(bk => bk !== pl.p.e.block && bk !== pl.q.e.block && x2 > bk.x - 1 && x1 < bk.x + bk.w + 1 && y2 > bk.y - 1 && y1 < bk.y + bk.h + 1)) return false;
+      segs.push([a, b]);
+      const own = lines.get(pl.l.id) || [];
+      for (const [id, pts] of lines) if (!ids.has(id) && !(skip && skip.has(id))) { now += crossings(segs[i], pts); before += crossings(own, pts); }
+    }
+    if (now > before) return false;
+    members.forEach((pl, i) => {
+      const c = r2(coords[i]), id = pl.l.id;
+      const ep = { side: pl.p.side, c }, eq = { side: pl.q.side, c };
+      const [from, to] = pl.flip ? [eq, ep] : [ep, eq];
+      out.set(id, { from: (pl.flip ? pl.q : pl.p).e.block ? from : null, to: (pl.flip ? pl.p : pl.q).e.block ? to : null });
+      lines.set(id, segs[i]);
+      for (const sp of spots.values()) for (let j = sp.length - 1; j >= 0; j--) if (sp[j].id === id) sp.splice(j, 1);
+      if (pl.p.e.block) addSpot(pl.p.key, id, c, true);
+      if (pl.q.e.block) addSpot(pl.q.key, id, c, true);
+    });
+    return true;
+  };
+  const options = members => {
+    const n = members.length, lo = Math.max(...members.map(m => m.lo)), hi = Math.min(...members.map(m => m.hi));
+    const opts = [];
+    const fixed = members.map(m => !m.p.e.block ? m.p.slot : !m.q.e.block ? m.q.slot : null);
+    if (fixed.some(v => v != null)) { opts.push(fixed.map((v, i) => v ?? members[i].p.slot)); return opts; }
+    opts.push(members.map(m => m.p.slot), members.map(m => m.q.slot));
+    // evenly spread over the shared part of both sides
+    const a = lo - M, b = hi + M;
+    opts.push(members.map((_, i) => a + (b - a) * (i + 1) / (n + 1)));
+    // packed around the middle with the minimum gap
+    const mid = (lo + hi) / 2;
+    opts.push(members.map((_, i) => mid + (i - (n - 1) / 2) * minGap));
+    return opts;
+  };
+  for (const members of groups.values()) {
+    members.sort((u, v) => u.order - v.order);
+    // already straight on their spread slots: nothing to do
+    if (members.every(m => m.p.slot != null && m.q.slot != null && Math.abs(m.p.slot - m.q.slot) < EPS)) continue;
+    // the whole group first, then as many links as possible one by one
+    if (options(members).some(o => tryPlace(members, o.map(v => v == null ? null : r2(v))))) continue;
+    const rest = new Set(members.map(m => m.l.id));
+    // middle links first: they are the most likely to fit inside the shared range
+    const mid = (members.length - 1) / 2;
+    for (const m of [...members].sort((u, v) => Math.abs(members.indexOf(u) - mid) - Math.abs(members.indexOf(v) - mid))) {
+      if (options([m]).some(o => tryPlace([m], o.map(v => v == null ? null : r2(v)), rest))) rest.delete(m.l.id);
+    }
+  }
+
+  // Minimize bends: a polyline with two or more bends becomes a single
+  // L-shaped bend when other sides or spots for its connectors allow it.
+  if (R.minBends) for (const l of doc.links) {
+    if (l.route !== 'poly' || hasWaypoints(l) || l.minBends === false || out.has(l.id)) continue;
+    const r = ends.get(l.id), A = r.from, B = r.to;
+    if (!A.block && !B.block) continue;
+    if (A.block && B.block && A.block === B.block) continue;
+    const own = lines.get(l.id) || [];
+    if (own.length - 2 < 2) continue;
+    const best = bestL(l, A, B, own);
+    if (!best) continue;
+    out.set(l.id, { from: best.from, to: best.to });
+    lines.set(l.id, best.path);
+    for (const sp of spots.values()) for (let j = sp.length - 1; j >= 0; j--) if (sp[j].id === l.id) sp.splice(j, 1);
+    for (const [e, st] of [[A, best.from], [B, best.to]]) if (st) addSpot(sideKey(e.block, st.side), l.id, st.c, true);
+  }
+
+  // A polyline that already runs towards a block side but ends with a small
+  // jog onto its spread slot: move the connector onto the line instead.
+  // Manually shaped routes qualify too: their bends stay, only the connector moves.
+  for (const l of doc.links) {
+    if (l.route !== 'poly' || l.straight === false || out.has(l.id)) continue;
+    const r = ends.get(l.id), entry = {};
+    let pts = (lines.get(l.id) || []).map(q => ({ x: q.x, y: q.y }));
+    for (const which of ['from', 'to']) {
+      const e = r[which];
+      if (!e.block || pts.length < 4) continue;
+      if (l.from.block && l.from.block === l.to.block) continue;
+      // E: port, S: end of the stub, Q: corner before the jog, P: start of the run towards the block
+      const n = pts.length, at = which === 'to' ? i => pts[n - 1 - i] : i => pts[i];
+      const E = at(0), S = at(1), Q = at(2), P = at(3);
+      const ax = along(e.side), nrm = ax === 'y' ? 'x' : 'y'; // ax: along the side; nrm: travel direction
+      const run = Math.abs(P[ax] - Q[ax]) < EPS && Math.abs(P[nrm] - Q[nrm]) > EPS;
+      const jog = Math.abs(Q[nrm] - S[nrm]) < EPS && Math.abs(Q[ax] - S[ax]) > EPS;
+      if (!run || !jog) continue;
+      // the run must head into the side from outside the block
+      const dir = Math.sign(Q[nrm] - P[nrm]), inward = -(ax === 'y' ? e.nx : e.ny);
+      if (dir !== inward) continue;
+      const b = e.block, s0 = b[ax] + M, s1 = b[ax] + (ax === 'x' ? b.w : b.h) - M, c = r2(Q[ax]);
+      if (c < s0 - EPS || c > s1 + EPS) continue;
+      const end = { e, side: e.side, key: sideKey(b, e.side) };
+      const ids = new Set([l.id]);
+      if (!sideOk(end, [c], ids)) continue;
+      const E2 = { x: ax === 'x' ? c : E.x, y: ax === 'y' ? c : E.y };
+      // nothing may sit between the corner and the side
+      const x1 = Math.min(Q.x, E2.x), x2 = Math.max(Q.x, E2.x), y1 = Math.min(Q.y, E2.y), y2 = Math.max(Q.y, E2.y);
+      if (doc.blocks.some(bk => bk !== b && x2 > bk.x - 1 && x1 < bk.x + bk.w + 1 && y2 > bk.y - 1 && y1 < bk.y + bk.h + 1)) continue;
+      const next = which === 'to' ? [...pts.slice(0, n - 3), E2] : [E2, ...pts.slice(3)];
+      let now = 0, before = 0;
+      for (const [id, q] of lines) if (id !== l.id) { now += crossings(next, q); before += crossings(pts, q); }
+      if (now > before) continue;
+      entry[which] = { side: e.side, c };
+      pts = next;
+      const list = spots.get(end.key) || [];
+      const k = list.findIndex(sp => sp.id === l.id && !sp.anchor);
+      if (k >= 0) list.splice(k, 1);
+      addSpot(end.key, l.id, c, true);
+    }
+    if (entry.from || entry.to) { out.set(l.id, { from: entry.from || null, to: entry.to || null }); lines.set(l.id, pts); }
+  }
+  return out;
 }
 
 /* Polyline through user-placed waypoints. The first and last bends follow
@@ -1966,8 +2292,10 @@ function doRender() {
   viewport.setAttribute('transform', `translate(${view.x},${view.y}) scale(${view.k})`);
   $('#zoomLabel').textContent = Math.round(view.k * 100) + '%';
   gridLayer.innerHTML = gridSvg();
-  const ends = computeEnds();
-  const geo = routeAll(ends);
+  let ends = computeEnds(new Map());
+  let geo = routeAll(ends);
+  lastStraight = findStraight(ends, geo);
+  if (lastStraight.size) { ends = computeEnds(lastStraight); geo = routeAll(ends); }
   lastGeo = geo;
   let ls = '', cs = '';
   for (const l of doc.links) {
@@ -2659,7 +2987,8 @@ function connIcon(type, dir) {
 function ctl(t, k, type, value, extra = {}) {
   const a = `data-t="${t}" data-k="${k}"`;
   if (type === 'icons') {
-    return `<div class="seg${extra.grid ? ' grid' : ''}" ${a}>${extra.options.map(([v, lbl, icon]) =>
+    const plain = /(End|Conn)$/.test(k); // arrow-end and connector pickers: no grey tray
+    return `<div class="seg${extra.grid ? ' grid' : ''}${plain ? ' plain' : ''}" ${a}>${extra.options.map(([v, lbl, icon]) =>
       `<button type="button" data-v="${esc(v)}" title="${esc(lbl)}" class="${v === value ? 'on' : ''}">${icon}</button>`).join('')}</div>`;
   }
   if (type === 'select') {
@@ -2840,6 +3169,10 @@ function refreshProps() {
     h += row('Color', ctl(T, 'color', 'color', l.color));
     h += row('Width', ctl(T, 'width', 'number', l.width, { min: 0.5, step: 0.5 }));
     if (!allRel) h += row('Line style', ctl(T, 'style', 'select', l.style, { options: OPTS.lineStyle }));
+    h += row('Straight when possible', `<span style="display:flex;align-items:center;gap:6px">${ctl(T, 'straight', 'checkbox', l.straight !== false)}` +
+      `${settings.routing.straight ? '' : '<span class="muted" style="font-size:11px">turned off for all links in Settings</span>'}</span>`);
+    if (l.route === 'poly') h += row('Minimize bends', `<span style="display:flex;align-items:center;gap:6px">${ctl(T, 'minBends', 'checkbox', l.minBends !== false)}` +
+      `${settings.routing.minBends ? '' : '<span class="muted" style="font-size:11px">turned off for all links in Settings</span>'}</span>`);
     h += row('Label color', ctl(T, 'labelColor', 'color', l.labelColor));
     if (!allRel) {
       h += `<h3>Ends</h3>`;
@@ -3654,7 +3987,9 @@ const SETTINGS_SPEC = [
     ['routing.spacing', 'Spacing between links', 'number', { min: 0, max: 50 }],
     ['routing.cornerRadius', 'Corner radius', 'number', { min: 0, max: 80 }],
     ['routing.bendPenalty', 'Bend penalty', 'number', { min: 0, max: 1000, step: 5 }],
-    ['routing.curveTension', 'Curve tension', 'number', { min: 0.05, max: 1.5, step: 0.05 }]]],
+    ['routing.curveTension', 'Curve tension', 'number', { min: 0.05, max: 1.5, step: 0.05 }],
+    ['routing.straight', 'Straight links when possible (all links)', 'checkbox'],
+    ['routing.minBends', 'Minimize bends (all links)', 'checkbox']]],
   ['Modeling', [
     ['model.showGlyph', 'Show type icon on elements', 'checkbox'],
     ['model.showType', 'Show type name on elements', 'checkbox'],
@@ -3679,6 +4014,8 @@ const SETTINGS_SPEC = [
     ['link.endEnd', 'Finish end', 'icons', { options: ICON_SETS.end('finish'), grid: true, stack: true }],
     ['link.startConn', 'Start connector', 'icons', { options: ICON_SETS.conn('start') }],
     ['link.endConn', 'Finish connector', 'icons', { options: ICON_SETS.conn('finish') }],
+    ['link.straight', 'Straight when possible', 'checkbox'],
+    ['link.minBends', 'Minimize bends', 'checkbox'],
     ['link.connColor', 'Connector color', 'color'], ['link.connSize', 'Connector size', 'number', { min: 2 }],
     ['link.labelColor', 'Label color', 'color']]]
 ];
