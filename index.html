@@ -143,16 +143,17 @@
 
   /* block content inside foreignObject */
   .bc {
-    width: 100%; height: 100%; padding: 6px 10px; display: flex; gap: 8px; overflow: hidden; position: relative;
+    width: 100%; height: 100%; padding: 6px 10px; display: flex; gap: 8px; overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.25; word-break: break-word; pointer-events: none; user-select: none; box-sizing: border-box;
   }
   .bc .bt { min-width: 0; }
   .bc .bi { flex: none; display: flex; align-items: center; justify-content: center; line-height: 1; }
-  .bc .bi-corner { position: absolute; left: 6px; top: 6px; }
-  .bc .bi-tr { position: absolute; right: 5px; top: 4px; opacity: .85; }
+  /* corner icons are SVG or their own foreignObject: WebKit (Safari, every iOS browser) draws
+     positioned or translucent HTML inside a foreignObject without the block's translate */
+  .bc-corner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; line-height: 1; pointer-events: none; }
   .bc.el { padding: 6px 22px; }
-  .bc .ty { font-size: .75em; opacity: .65; font-style: italic; }
+  .bc .ty { font-size: .75em; color: color-mix(in srgb, currentColor 65%, transparent); font-style: italic; }
   .bc p { margin: 0; }
 
   /* rich text editor overlay */
@@ -2188,15 +2189,17 @@ function blockSvg(b) {
   if (pos === 'top') { dir = 'column'; justify = jv; alignItems = jh; }
   else if (pos === 'right') { dir = 'row-reverse'; justify = jh === 'flex-start' ? 'flex-end' : jh === 'flex-end' ? 'flex-start' : 'center'; }
   const icon = iconHtml(b);
-  const iconPart = icon ? (pos === 'corner' ? `<div class="bi bi-corner">${icon}</div>` : `<div class="bi">${icon}</div>`) : '';
+  const iconPart = icon && pos !== 'corner' ? `<div class="bi">${icon}</div>` : '';
+  const isz = (+b.iconSize || 24) + 4;
+  const corner = icon && pos === 'corner' ? `<foreignObject x="4" y="4" width="${isz}" height="${isz}"><div xmlns="http://www.w3.org/1999/xhtml" class="bc-corner">${icon}</div></foreignObject>` : '';
   let title = editingId === b.id ? '' : b.title;
   let glyph = '', cls = 'bc';
   if (b.element) {
     title = editingId === b.id ? '' : (el ? esc(el.name) : '<i>missing element</i>');
     if (el && settings.model.showType && editingId !== b.id) title += `<div class="ty">${esc(typeName(el.type))}</div>`;
-    if (el && settings.model.showGlyph && el.type !== 'grouping') { glyph = `<div class="bi bi-tr">${typeGlyph(el.type, 16, '#1f2937')}</div>`; cls += ' el'; }
+    if (el && settings.model.showGlyph && el.type !== 'grouping') { glyph = `<g transform="translate(${f1(b.w - 21)},4)" opacity=".85" pointer-events="none">${typeGlyph(el.type, 16, '#1f2937')}</g>`; cls += ' el'; }
   }
-  s += `<foreignObject width="${b.w}" height="${b.h}"><div xmlns="http://www.w3.org/1999/xhtml" class="${cls}" style="flex-direction:${dir};justify-content:${justify};align-items:${alignItems};color:${esc(b.textColor)};font-size:${+b.fontSize}px;text-align:${b.align}${b.shape === 'tab' ? ';padding-top:3px' : ''}">${iconPart}${glyph}<div class="bt">${title}</div></div></foreignObject>`;
+  s += `<foreignObject width="${b.w}" height="${b.h}"><div xmlns="http://www.w3.org/1999/xhtml" class="${cls}" style="flex-direction:${dir};justify-content:${justify};align-items:${alignItems};color:${esc(b.textColor)};font-size:${+b.fontSize}px;text-align:${b.align}${b.shape === 'tab' ? ';padding-top:3px' : ''}">${iconPart}<div class="bt">${title}</div></div></foreignObject>${corner}${glyph}`;
 
   if (b.badge) {
     const fs = 11, tw = Math.max(18, textWidth(b.badge, fs) + 12), bh = 18;
@@ -4448,7 +4451,7 @@ function exportSvg() {
   if (!bb) { toast('Nothing to export'); render(); return; }
   const pad = 24, x = bb.x - pad, y = bb.y - pad, w = bb.w + pad * 2, h = bb.h + pad * 2;
   const ser = new XMLSerializer();
-  const css = `.bc{width:100%;height:100%;padding:6px 10px;display:flex;gap:8px;overflow:hidden;position:relative;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.25;word-break:break-word}.bc .bt{min-width:0}.bc .bi{flex:none;display:flex;align-items:center;justify-content:center;line-height:1}.bc .bi-corner{position:absolute;left:6px;top:6px}.bc .bi-tr{position:absolute;right:5px;top:4px;opacity:.85}.bc.el{padding:6px 22px}.bc .ty{font-size:.75em;opacity:.65;font-style:italic}.bc p{margin:0}`;
+  const css = `.bc{width:100%;height:100%;padding:6px 10px;display:flex;gap:8px;overflow:hidden;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.25;word-break:break-word}.bc .bt{min-width:0}.bc .bi{flex:none;display:flex;align-items:center;justify-content:center;line-height:1}.bc-corner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;line-height:1}.bc.el{padding:6px 22px}.bc .ty{font-size:.75em;color:color-mix(in srgb,currentColor 65%,transparent);font-style:italic}.bc p{margin:0}`;
   const out = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f1(x)} ${f1(y)} ${f1(w)} ${f1(h)}" width="${Math.ceil(w)}" height="${Math.ceil(h)}"><style>${css}</style>` +
     `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" fill="${esc(settings.canvas.background)}"/>` +
     [blockLayer, linkLayer, connLayer, flowLayer].map(n => ser.serializeToString(n)).join('') + '</svg>';
