@@ -19,7 +19,8 @@ It is one HTML file that runs in the browser, with no installation and no server
 - [14. Settings](#14-settings)
 - [15. Keyboard and mouse reference](#15-keyboard-and-mouse-reference)
 - [16. Phones and tablets](#16-phones-and-tablets)
-- [17. Tips and limitations](#17-tips-and-limitations)
+- [17. Working with an agent](#17-working-with-an-agent)
+- [18. Tips and limitations](#18-tips-and-limitations)
 
 ---
 
@@ -443,6 +444,7 @@ Throughout the cycle:
 - **Auto-save**: the workspace is also kept in the browser's storage, in case the tab closes. It is per browser and per computer, so save to a file to keep or share your work.
 - **arch-diagram files** can be opened. Their boxes and lines become notes and plain connections in a single view, and the result is saved under a new name ending in `-togaf.json`.
 - **File format**: plain, readable JSON, which works well with Git. The format is described in README.md.
+- **Changes made by other programs** (an agent, the command-line tool, a Git pull) are picked up while the file is open. See [Working with an agent](#17-working-with-an-agent).
 
 ---
 
@@ -524,7 +526,92 @@ Files: phones cannot save a file in place. **Save** downloads the `.json` file, 
 
 ---
 
-## 17. Tips and limitations
+## 17. Working with an agent
+
+An AI agent, such as Claude Code, can read a workspace, analyse it and change it, while you watch the result in the app. It has two parts:
+- the command-line tool `tools/togaf.mjs`, which does the work on the file;
+- the live reload in the app, which shows the change.
+
+### The command-line tool
+
+The tool needs Node.js 18 or later and nothing else. It works on the workspace file directly:
+
+```sh
+node tools/togaf.mjs info my-architecture.json              # what is in it
+node tools/togaf.mjs check my-architecture.json             # what is wrong with it
+node tools/togaf.mjs impact my-architecture.json "ERP"      # what depends on ERP
+node tools/togaf.mjs apply my-architecture.json changes.json   # change it
+```
+
+**Reading:**
+- `info`: the model, its counts by layer, its views and the ADM status.
+- `views`: the views.
+- `show`: the elements and relationships drawn in one view.
+- `elements`, `element`, `relations`: browse the model.
+- `adm`: the phases.
+
+**Analysing:**
+- `check` reports:
+  - **errors:** what the app would silently drop when it loads the file, and relationships that are not valid in ArchiMate;
+  - **warnings:** elements outside a view's viewpoint, and duplicate names;
+  - **notes:** unused elements, relationships not drawn in any view, missing documentation.
+- `impact` follows relationships from an element, in one direction or both, to a given depth.
+- `catalog` and `matrix` print TOGAF catalogs and matrices as Markdown tables or CSV.
+- `rules` gives the valid relationships between two element types.
+
+**Changing:** `apply` runs a batch of operations from a JSON file:
+- add, update or remove elements, relationships and views;
+- show elements in a view, or hide them;
+- lay a view out again;
+- update an ADM phase.
+
+How a batch behaves:
+- **All or nothing.** If one operation fails, for example because a relationship is not valid in ArchiMate, nothing is written.
+- **Relationships are drawn automatically** in every view that shows both of their elements.
+- **New elements are placed** next to elements of the same layer.
+- **Everything else is kept**: settings, positions, styles, flows and routes.
+- **Backup.** Before each write, the previous version is copied to a hidden `.<name>.bak` file next to the workspace.
+
+`node tools/togaf.mjs help` lists every command and operation. Read commands also take `--json`, for other programs.
+
+The tool reads element types, relationship rules and viewpoints from `index.html` itself, so it always applies the same rules as the app.
+
+### Live reload in the app
+
+When a workspace is open in Chrome or Edge, through **Open**, **Save as** or dropping the file onto the window, the app checks the file on disk about every second and a half.
+
+- **No unsaved changes:** a new version written by another program is loaded at once. You stay on the same view and zoom, and the selection is kept. **Undo** goes back to the version before the change.
+- **Unsaved changes:** a bar asks what to do. **Load from disk** takes the new version; your changes stay in Undo. **Keep mine** keeps yours, and the next save overwrites the version on disk.
+- **Saving** never silently overwrites a version written by another program after you opened the file: the same bar appears first.
+
+Live reload needs the file handle that Chrome gives when you open the file. After reloading the page, open the file again to get it back. In other browsers, or after a download-style open, reopen the file to see changes.
+
+### With Claude Code
+
+The repository includes a Claude Code skill, `skills/arch-togaf/SKILL.md`. It teaches the agent:
+- to reuse existing elements;
+- to respect ArchiMate rules and relationship directions;
+- to preview large changes;
+- to run `check` before and after changing a workspace.
+
+To install it, link the folder into your skills:
+
+```sh
+ln -s "$PWD/skills/arch-togaf" ~/.claude/skills/arch-togaf
+```
+
+Then ask in plain words. For example:
+- "What in hosting.json depends on the Cloud platform?"
+- "Check my workspace for problems."
+- "Add a CRM that serves the order process, and show it in the Order system view."
+
+Keep the file open in the app to watch the changes arrive.
+
+Not available to the agent yet: nesting elements inside a container. Do that in the app.
+
+---
+
+## 18. Tips and limitations
 
 - **Name things once and reuse them.** Drag existing elements from the Model tab instead of creating new ones with the same name. Duplicates make catalogs and matrices wrong.
 - **Look for unused elements.** Grey italic entries in the Model tab are in no view. Delete them or put them in a view.

@@ -271,6 +271,14 @@
     position: absolute; left: 50%; top: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; z-index: 5;
     background: #111827; color: #fff; padding: 6px 8px 6px 12px; border-radius: 10px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.18);
   }
+  #diskBar {
+    position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 9; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    width: max-content; max-width: calc(100% - 24px); background: #111827; color: #fff; padding: 8px 8px 8px 14px; border-radius: 10px; font-size: 12.5px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.18);
+  }
+  #diskBar span { flex: 1 1 260px; }
+  #diskBar button { border: 0; border-radius: 6px; padding: 5px 10px; cursor: pointer; font-weight: 600; background: #374151; color: #fff; }
+  #diskBar button[data-disk=load] { background: #fff; color: #111827; }
   #recBar .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: recBlink 1.2s infinite; }
   #recBar button { border: 0; background: #fff; color: #111827; border-radius: 6px; padding: 3px 10px; cursor: pointer; font-weight: 600; }
   @keyframes recBlink { 50% { opacity: .25; } }
@@ -462,6 +470,7 @@
     <div id="relPicker" hidden></div>
     <button id="connectBtn" aria-pressed="false" title="Connect: drag from an element to another to relate them"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3" width="7" height="6" rx="1.5"/><rect x="14.5" y="15" width="7" height="6" rx="1.5"/><path d="M6 9v4a3 3 0 0 0 3 3h5.5"/><path d="m12 13 2.5 3-2.5 3"/></svg></button>
     <div id="toast"></div>
+    <div id="diskBar" hidden role="alert"><span id="diskText"></span><button data-disk="load">Load from disk</button><button data-disk="keep">Keep mine</button></div>
     <div id="recBar" hidden><span class="dot"></span><span id="recText"></span><button data-fact="stop">Done</button></div>
   </div>
   </div>
@@ -568,7 +577,10 @@ const ICONS = {
 
 /* =====================================================================
    ArchiMate 3.2 / TOGAF metamodel
+   Pure data and functions, no DOM: tools/togaf.mjs evaluates this region as is,
+   so the command-line tool and the app share the same types and rules.
    ===================================================================== */
+/* @metamodel-begin */
 const LAYERS = {
   strategy: { name: 'Strategy', color: '#f5deaa' },
   business: { name: 'Business', color: '#ffffb5' },
@@ -864,6 +876,7 @@ const ADM_PHASES = [
     items: { 'Artifacts': ['Requirements catalog'], 'Deliverables': ['Requirements Impact Assessment', 'Architecture Requirements Specification (updated)'] } }
 ];
 const admPhase = id => ADM_PHASES.find(p => p.id === id);
+/* @metamodel-end */
 
 /* =====================================================================
    Link end markers (drawn pointing to +x, tip at the origin)
@@ -4301,8 +4314,10 @@ function normalizeAdm(o) {
   }
   return out;
 }
-function loadFileObject(obj, name, handle) {
+function loadFileObject(obj, name, handle, opts = {}) {
   if (!obj || typeof obj !== 'object') throw new Error('Not a JSON object');
+  // a reload from disk keeps the user's place: active view, zoom of each view, selection
+  const keep = opts.keep ? { id: doc.id, vps: new Map(viewports).set(doc.id, { ...view }), sel: new Set(sel), modelSel } : null;
   const legacy = !obj.views && (Array.isArray(obj.blocks) || Array.isArray(obj.links));
   if (!legacy && !Array.isArray(obj.views)) throw new Error('Not an Arch TOGAF or arch-diagram file');
   const snap = snapshot();
@@ -4327,9 +4342,18 @@ function loadFileObject(obj, name, handle) {
   (legacy ? [] : obj.views).forEach((v, i) => { if (v && v.vp && isFinite(v.vp.k) && views[i]) viewports.set(views[i].id, { x: num(v.vp.x, 0), y: num(v.vp.y, 0), k: clamp(num(v.vp.k, 1), 0.1, 5) }); });
   if (legacy && obj.view && isFinite(obj.view.k)) viewports.set(views[0].id, { x: num(obj.view.x, 0), y: num(obj.view.y, 0), k: clamp(num(obj.view.k, 1), 0.1, 5) });
   doc = views.find(v => v.id === obj.activeView) || views[0];
+  if (keep) {
+    for (const [id, vp] of keep.vps) if (views.some(v => v.id === id)) viewports.set(id, vp);
+    doc = views.find(v => v.id === keep.id) || doc;
+  }
   syncModel();
   if (snap !== snapshot()) { undoStack.push(snap); redoStack = []; }
   sel.clear(); activeFlow = null; recording = false; modelSel = null;
+  if (keep) {
+    for (const id of keep.sel) if (bmap.has(id) || linkById(id)) sel.add(id);
+    if (keep.modelSel && (elById(keep.modelSel) || relById(keep.modelSel))) modelSel = keep.modelSel;
+  }
+  diskStamp = opts.stamp || 0; diskPending = null; $('#diskBar').hidden = true;
   fileName = legacy ? String(name || 'untitled.json').replace(/\.json$/i, '') + '-togaf.json' : (name || 'untitled.json');
   fileHandle = legacy ? null : (handle || null);
   const vp = viewports.get(doc.id);
@@ -4343,7 +4367,7 @@ async function openFile() {
     try {
       const [h] = await window.showOpenFilePicker({ types: FILE_TYPES, multiple: false });
       const file = await h.getFile();
-      loadFileObject(JSON.parse(await file.text()), file.name, h);
+      loadFileObject(JSON.parse(await file.text()), file.name, h, { stamp: file.lastModified });
       toast('Opened ' + file.name);
     } catch (err) { if (err.name !== 'AbortError') toast('Could not open: ' + err.message, true); }
   } else {
@@ -4368,8 +4392,16 @@ async function saveFile(saveAs = false) {
       if (fileHandle.requestPermission && (await fileHandle.queryPermission({ mode: 'readwrite' })) !== 'granted') {
         if ((await fileHandle.requestPermission({ mode: 'readwrite' })) !== 'granted') throw new Error('Permission denied');
       }
-      const w = await fileHandle.createWritable();
-      await w.write(json); await w.close();
+      if (!saveAs && diskStamp) {
+        const f = await fileHandle.getFile();
+        if (f.lastModified !== diskStamp) { showDiskConflict(f, true); return; }
+      }
+      saving = true;
+      try {
+        const w = await fileHandle.createWritable();
+        await w.write(json); await w.close();
+        diskStamp = (await fileHandle.getFile()).lastModified;
+      } finally { saving = false; }
       dirty = false; updateTitle();
       storageSet(STORE + 'autosave', JSON.stringify({ fileName, data: buildFileObject() }));
       toast('Saved ' + fileName);
@@ -4434,8 +4466,57 @@ window.addEventListener('drop', async e => {
   try { if (item.getAsFileSystemHandle) handle = await item.getAsFileSystemHandle(); } catch (err) { handle = null; }
   const file = handle && handle.getFile ? await handle.getFile() : item.getAsFile();
   if (!file) return;
-  try { loadFileObject(JSON.parse(await file.text()), file.name, handle && handle.kind === 'file' ? handle : null); toast('Opened ' + file.name); }
+  try { loadFileObject(JSON.parse(await file.text()), file.name, handle && handle.kind === 'file' ? handle : null, { stamp: file.lastModified }); toast('Opened ' + file.name); }
   catch (err) { toast('Could not open: ' + err.message, true); }
+});
+
+/* ---------- live reload: changes written to the open file by another program ----------
+   An agent or the command-line tool (tools/togaf.mjs) may edit the workspace file while it is
+   open here. Without unsaved changes the app loads the new version (Undo goes back); with
+   unsaved changes it asks. Only possible for files opened with a file handle (Chrome, Edge). */
+let diskStamp = 0, diskPending = null, saving = false, polling = false;
+async function pollDisk() {
+  if (!fileHandle || !diskStamp || saving || polling || diskPending || editingId || drag || document.visibilityState !== 'visible') return;
+  polling = true;
+  try {
+    const f = await fileHandle.getFile();
+    if (f.lastModified === diskStamp) return;
+    if (!dirty) reloadFromDisk(JSON.parse(await f.text()), f.lastModified);
+    else showDiskConflict(f, false);
+  } catch (err) {
+    // a half-written file fails to parse: try again on the next tick
+    if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') diskStamp = 0;
+  } finally { polling = false; }
+}
+setInterval(pollDisk, 1500);
+document.addEventListener('visibilitychange', pollDisk);
+function reloadFromDisk(obj, stamp) {
+  if (editingId) commitEditor();
+  loadFileObject(obj, fileName, fileHandle, { keep: true, stamp });
+  storageSet(STORE + 'autosave', JSON.stringify({ fileName, data: buildFileObject() }));
+  toast(`${fileName} was changed by another program: loaded. Undo goes back.`);
+}
+async function showDiskConflict(f, onSave) {
+  diskPending = { file: f, onSave };
+  $('#diskText').textContent = onSave
+    ? `${fileName} was changed by another program since you opened it. Saving now would overwrite that version.`
+    : `${fileName} was changed by another program, and you have unsaved changes.`;
+  $('#diskBar').hidden = false;
+}
+$('#diskBar').addEventListener('click', async e => {
+  const b = e.target.closest('[data-disk]');
+  if (!b || !diskPending) return;
+  const p = diskPending;
+  diskPending = null;
+  $('#diskBar').hidden = true;
+  if (b.dataset.disk === 'load') {
+    try { reloadFromDisk(JSON.parse(await p.file.text()), p.file.lastModified); toast('Loaded the version on disk. Undo brings your changes back.'); }
+    catch (err) { toast('Could not read the file: ' + err.message, true); }
+  } else {
+    // keep mine: the next save overwrites the version on disk
+    diskStamp = p.file.lastModified;
+    if (p.onSave) saveFile();
+  }
 });
 
 let toastTimer = null;

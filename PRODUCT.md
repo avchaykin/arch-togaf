@@ -36,7 +36,8 @@ A lightweight companion, not a replacement for a full EA repository (Archi, Spar
   - model and views, ArchiMate element and relationship types with standard notation, and a relationship picker limited to valid types;
   - viewpoints that filter the palette, a model browser, and nesting;
   - an ADM panel with phase status and deliverable checklists, catalogs and matrices with CSV export, and SVG export;
-  - an adaptive layout for phones and tablets.
+  - an adaptive layout for phones and tablets;
+  - agent access: `tools/togaf.mjs` reads, checks and changes workspaces using the app's own metamodel region (`@metamodel-begin/end` in index.html), and the app reloads the open file live when another program changes it. The Claude Code skill is in `skills/arch-togaf`.
 - Planned work is in ROADMAP.md: the full ArchiMate relationship table, junctions, properties schemas, TOGAF artifacts and requirements, plateaus, gaps and roadmaps, document generation, and Open Exchange Format import/export.
 - User-facing docs: README.md and DOCUMENTATION.md.
 

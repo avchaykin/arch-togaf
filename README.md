@@ -33,6 +33,7 @@ How to use it: [DOCUMENTATION.md](DOCUMENTATION.md). The plan of the next versio
   Polyline segments can be dragged to shape a route by hand; double-click one to go back to automatic routing.
 - **From arch-diagram** also: flows, rich-text notes, connectors, SVG export, undo/redo. Opening an arch-diagram file imports it as one view of notes.
 - **Phones and tablets**: below 900 px the panels become bottom sheets, and touch gestures replace the mouse: pinch to zoom, double-tap to add or rename, a link button to create relationships.
+- **Agent access**: `tools/togaf.mjs` is a command-line tool for agents and scripts. It reads a workspace, checks it, analyses impact, prints catalogs and matrices, and applies a batch of changes. It uses the app's own ArchiMate rules. The app reloads the file live when another program changes it. A Claude Code skill is in `skills/arch-togaf`. See [Working with an agent](DOCUMENTATION.md#17-working-with-an-agent).
 - **Files**: the workspace is one JSON file. In Chrome the File System Access API reads and writes it in place; other browsers fall back to upload/download. Work is also auto-saved in browser storage.
 
 ## JSON format

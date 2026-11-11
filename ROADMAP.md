@@ -34,6 +34,12 @@ Everything built in arch-diagram (routing, connectors, flows, rich text, file ha
 - [x] Catalogs (elements, relationships) and generic matrices (rows type × columns type), with CSV export
 - [x] Import of arch-diagram files (as notes in one view)
 
+### v0.1.x: Agent access (done)
+- [x] Command-line tool `tools/togaf.mjs`: read the model, check it, impact analysis, catalogs and matrices, and a batch of changes applied all or nothing. It uses the app's own metamodel.
+- [x] Live reload of the open file in the app, with a conflict bar when there are unsaved changes, and a save guard.
+- [x] Claude Code skill `skills/arch-togaf`.
+- [ ] Next: nesting through the tool, persisting the file handle so live reload survives a page reload, and an MCP server or in-page API if needed.
+
 ### v0.2: Better modeling
 - Full ArchiMate 3.2 relationship table (instead of simplified rules) and derived relationships
 - Junctions (and/or), nested relationships shown by nesting, optional "nesting creates a relationship"
