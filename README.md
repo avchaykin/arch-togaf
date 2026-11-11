@@ -7,6 +7,10 @@ It is a fork of [arch-diagram](https://github.com/avchaykin/arch-diagram) and ke
 What it adds is a **model**: elements and relationships that exist once and appear in many views.
 How to use it: [DOCUMENTATION.md](DOCUMENTATION.md). The plan of the next versions: [ROADMAP.md](ROADMAP.md).
 
+**Try it online (preview):** https://avchaykin.github.io/arch-togaf/ — it opens with an example workspace. Work is kept in your browser's storage; use Save to keep a JSON file.
+
+![Arch TOGAF: an Application usage view of the example workspace](docs/screenshot.png)
+
 ## Features (v0.1)
 
 - **Model and views**: a workspace holds one model (typed elements and relationships) and any number of views, shown as tabs above the canvas.
