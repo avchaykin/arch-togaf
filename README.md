@@ -32,6 +32,7 @@ How to use it: [DOCUMENTATION.md](DOCUMENTATION.md). The plan of the next versio
   Links attach **straight across** when their blocks face each other and nothing is in the way, and **minimize bends** turns a two-bend route into a single L-bend when possible. Both can be switched per link or for all links in Settings.
   Polyline segments can be dragged to shape a route by hand; double-click one to go back to automatic routing.
 - **From arch-diagram** also: flows, rich-text notes, connectors, SVG export, undo/redo. Opening an arch-diagram file imports it as one view of notes.
+- **Phones and tablets**: below 900 px the panels become bottom sheets, and touch gestures replace the mouse: pinch to zoom, double-tap to add or rename, a link button to create relationships.
 - **Files**: the workspace is one JSON file. In Chrome the File System Access API reads and writes it in place; other browsers fall back to upload/download. Work is also auto-saved in browser storage.
 
 ## JSON format

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Arch TOGAF</title>
 <style>
   :root {
@@ -42,6 +42,7 @@
   #zoomLabel { min-width: 46px; text-align: center; color: var(--ui-muted); cursor: pointer; }
   #fileName { margin-left: auto; color: var(--ui-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
   #toolbar a.tbtn { color: inherit; text-decoration: none; }
+  [data-cmd=saveAs] svg, [data-cmd=exportSvg] svg, [data-cmd=fit] svg, [data-cmd=help] svg { display: none; }
 
   /* ---------- main ---------- */
   main { flex: 1; display: flex; min-height: 0; }
@@ -108,7 +109,7 @@
   .warn { font-size: 12px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 7px; padding: 5px 8px; margin: 6px 0; }
 
   /* relationship picker */
-  #relPicker { position: absolute; z-index: 8; background: var(--ui-bg); border: 1px solid var(--ui-border); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 5px; min-width: 210px; }
+  #relPicker { position: absolute; z-index: 8; background: var(--ui-bg); border: 1px solid var(--ui-border); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 5px; min-width: 210px; max-height: calc(100% - 8px); overflow-y: auto; }
   #relPicker .rp-h { font-size: 11px; color: var(--ui-muted); padding: 3px 7px 5px; }
   #relPicker button { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: transparent; padding: 5px 7px; border-radius: 6px; cursor: pointer; text-align: left; }
   #relPicker button:hover, #relPicker button.def { background: var(--accent-soft); }
@@ -300,10 +301,86 @@
   table.keys td:first-child { white-space: nowrap; width: 40%; }
 
   @media (max-width: 1100px) { #left { width: 210px; } .pal-grid { grid-template-columns: repeat(5, 1fr); } }
-  @media (max-width: 760px) {
-    #side { width: 220px; }
-    #left { display: none; }
-    .tbtn .lbl { display: none; }
+
+  /* ---------- compact layout (phones, small tablets): panels become bottom sheets ---------- */
+  #mnav, #connectBtn, .sheet-head, .pal-item .pn { display: none; }
+  @media (max-width: 900px) {
+    html, body { height: 100dvh; }
+    #toolbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; min-height: 0; padding: max(4px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) 4px max(6px, env(safe-area-inset-left)); gap: 2px; }
+    #toolbar::-webkit-scrollbar { display: none; }
+    .brand { margin-right: 2px; }
+    .brand small, #fileName { display: none; }
+    .tgroup { padding: 0 3px; flex: none; }
+    .tbtn svg + .lbl { display: none; }
+    [data-cmd=saveAs] svg, [data-cmd=exportSvg] svg, [data-cmd=fit] svg, [data-cmd=help] svg { display: block; }
+    #left, #side {
+      position: fixed; left: 0; right: 0; bottom: calc(56px + env(safe-area-inset-bottom)); width: auto; height: min(62dvh, 600px); z-index: 20;
+      border: 0; border-top: 1px solid var(--ui-border); border-radius: 14px 14px 0 0; box-shadow: 0 -10px 30px rgba(15, 23, 42, .14);
+      transform: translateY(calc(100% + 60px)); visibility: hidden; transition: transform .3s cubic-bezier(.16, 1, .3, 1), visibility 0s .3s;
+    }
+    #left.open, #side.open { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.16, 1, .3, 1); }
+    #leftTabs, #sideTabs { display: none; }
+    .sheet-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px 4px 16px; flex: none; position: relative; }
+    .sheet-head::before { content: ""; position: absolute; left: 50%; top: 5px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--ui-border); }
+    .sheet-title { font-weight: 600; font-size: 15px; padding-top: 8px; }
+    .sheet-x { margin-left: auto; width: 40px; height: 40px; border: 0; background: transparent; border-radius: 10px; color: var(--ui-muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+    .sheet-x:hover { background: var(--ui-bg2); color: var(--ui-text); }
+    .sheet-x svg { width: 20px; height: 20px; }
+    #left .panel, #side .panel { padding: 4px 16px calc(24px + env(safe-area-inset-bottom)); font-size: 14px; }
+    #mnav {
+      display: flex; flex: none; background: var(--ui-bg); border-top: 1px solid var(--ui-border); z-index: 21;
+      padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    #mnav button {
+      flex: 1; min-width: 0; height: 56px; border: 0; background: transparent; color: var(--ui-muted); cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 500;
+    }
+    #mnav button svg { width: 22px; height: 22px; }
+    #mnav button.on { color: var(--accent); }
+    #connectBtn {
+      display: flex; position: absolute; right: 12px; bottom: 12px; z-index: 5; width: 48px; height: 48px; border-radius: 14px;
+      border: 1px solid var(--ui-border); background: var(--ui-bg); color: var(--ui-text); align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, .14); cursor: pointer;
+    }
+    #connectBtn svg { width: 22px; height: 22px; }
+    #connectBtn[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    #hint { right: 72px; bottom: 12px; font-size: 12px; line-height: 1.35; }
+    .pal-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+    .pal-item { height: auto; min-height: 60px; flex-direction: column; gap: 4px; padding: 6px 4px; border-radius: 9px; }
+    .pal-item svg { width: 20px; height: 20px; }
+    .pal-item .pn { display: block; font-size: 11px; line-height: 1.15; text-align: center; hyphens: auto; overflow-wrap: break-word; max-width: 100%; }
+    .pal-layer { margin-top: 14px; }
+    .row { grid-template-columns: 104px 1fr; }
+    #settingsDlg, #catDlg, dialog { max-height: calc(100dvh - 24px); }
+  }
+  @media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+    /* phone on its side: the panels slide in from the left and keep the canvas visible */
+    #left, #side { right: auto; top: 0; width: min(380px, 62vw); height: auto; border-top: 0; border-right: 1px solid var(--ui-border); border-radius: 0 14px 14px 0; transform: translateX(calc(-100% - 40px)); }
+    #mnav button { height: 48px; flex-direction: row; gap: 6px; font-size: 12px; }
+    #hint { display: none; }
+    #left, #side { bottom: calc(48px + env(safe-area-inset-bottom)); }
+  }
+  @media (max-width: 600px) {
+    #settingsBody { grid-template-columns: minmax(0, 1fr); }
+    .dlg-body { max-height: calc(100dvh - 160px); }
+  }
+  /* touch: bigger targets everywhere, whatever the width */
+  @media (pointer: coarse) {
+    .tbtn { min-height: 40px; min-width: 40px; justify-content: center; }
+    .tbtn svg { width: 18px; height: 18px; }
+    #leftTabs button, #sideTabs button { padding: 9px 0; }
+    #viewTabs .vtab { padding: 9px 12px; }
+    #viewTabs .vtab.on { padding-bottom: 10px; }
+    #viewTabs .vadd { padding: 8px 14px; }
+    .tree-i { padding: 9px 8px; font-size: 14px; }
+    .tree-h { padding: 6px 0; }
+    #relPicker button { padding: 10px 9px; }
+    .btn { min-height: 38px; }
+    .vlink { padding: 10px; }
+    #edBar button, #edBar select { min-width: 36px; height: 36px; }
+  }
+  @media (pointer: coarse) and (max-width: 900px) {
+    [data-cmd=zoomIn], [data-cmd=zoomOut], #zoomLabel { display: none; }
   }
 </style>
 </head>
@@ -314,8 +391,8 @@
     <button class="tbtn" data-cmd="new" title="New diagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 12v6M9 15h6"/></svg><span class="lbl">New</span></button>
     <button class="tbtn" data-cmd="open" title="Open JSON file (Ctrl/Cmd+O)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="lbl">Open</span></button>
     <button class="tbtn" data-cmd="save" title="Save (Ctrl/Cmd+S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span class="lbl">Save</span></button>
-    <button class="tbtn" data-cmd="saveAs" title="Save as… (Ctrl/Cmd+Shift+S)"><span class="lbl">Save as…</span></button>
-    <button class="tbtn" data-cmd="exportSvg" title="Export the current view as an SVG image"><span class="lbl">Export SVG</span></button>
+    <button class="tbtn" data-cmd="saveAs" title="Save as… (Ctrl/Cmd+Shift+S)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v3"/><path d="M7 3v5h8"/><path d="m15.5 21 .6-2.6 4.6-4.6a1.4 1.4 0 0 1 2 2l-4.6 4.6z"/></svg><span class="lbl">Save as…</span></button>
+    <button class="tbtn" data-cmd="exportSvg" title="Export the current view as an SVG image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-4-4-9 9"/></svg><span class="lbl">Export SVG</span></button>
   </div>
   <div class="tgroup">
     <button class="tbtn" data-cmd="catalogs" title="Catalogs and matrices generated from the model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 9v11"/></svg><span class="lbl">Catalogs</span></button>
@@ -329,11 +406,11 @@
     <button class="tbtn" data-cmd="zoomOut" title="Zoom out (-)">−</button>
     <span id="zoomLabel" title="Reset zoom to 100%">100%</span>
     <button class="tbtn" data-cmd="zoomIn" title="Zoom in (+)">+</button>
-    <button class="tbtn" data-cmd="fit" title="Fit diagram to screen (F)"><span class="lbl">Fit</span></button>
+    <button class="tbtn" data-cmd="fit" title="Fit diagram to screen (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg><span class="lbl">Fit</span></button>
   </div>
   <div class="tgroup">
     <button class="tbtn" data-cmd="settings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="lbl">Settings</span></button>
-    <button class="tbtn" data-cmd="help" title="Help &amp; shortcuts"><span class="lbl">Help</span></button>
+    <button class="tbtn" data-cmd="help" title="Help &amp; shortcuts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.5 2.5-2.5 2.5M12 17h.01"/></svg><span class="lbl">Help</span></button>
     <a class="tbtn" id="ghLink" target="_blank" rel="noopener" title="Source on GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg></a>
   </div>
   <span id="fileName"></span>
@@ -341,6 +418,7 @@
 
 <main>
   <aside id="left">
+    <div class="sheet-head"><span class="sheet-title"></span><button class="sheet-x" data-sheet-close aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div id="leftTabs"><button data-ltab="palette" class="on">Palette</button><button data-ltab="model">Model</button><button data-ltab="adm">ADM</button></div>
     <div id="palettePanel" class="panel"></div>
     <div id="modelPanel" class="panel" hidden></div>
@@ -382,16 +460,19 @@
     </div>
     <div id="hint"></div>
     <div id="relPicker" hidden></div>
+    <button id="connectBtn" aria-pressed="false" title="Connect: drag from an element to another to relate them"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3" width="7" height="6" rx="1.5"/><rect x="14.5" y="15" width="7" height="6" rx="1.5"/><path d="M6 9v4a3 3 0 0 0 3 3h5.5"/><path d="m12 13 2.5 3-2.5 3"/></svg></button>
     <div id="toast"></div>
     <div id="recBar" hidden><span class="dot"></span><span id="recText"></span><button data-fact="stop">Done</button></div>
   </div>
   </div>
   <aside id="side">
+    <div class="sheet-head"><span class="sheet-title"></span><button class="sheet-x" data-sheet-close aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div id="sideTabs"><button data-tab="props" class="on">Properties</button><button data-tab="flows">Flows<span class="cnt" id="flowCnt"></span></button></div>
     <div id="inspector" class="panel"></div>
     <div id="flowsPanel" class="panel" hidden></div>
   </aside>
 </main>
+<nav id="mnav" aria-label="Panels"><button data-m="palette"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7"/></svg><span>Add</span></button><button data-m="model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h6M4 12h6M4 19h6"/><path d="M14 5h6M14 12h6M14 19h6" opacity=".5"/></svg><span>Model</span></button><button data-m="adm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5v5.5M20.5 12H15M12 20.5V15M3.5 12H9"/></svg><span>ADM</span></button><button data-m="props"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Properties</span></button><button data-m="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h8a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8"/></svg><span>Flows</span></button></nav>
 
 <dialog id="settingsDlg">
   <div class="dlg-head">Settings <button class="btn" data-close>✕</button></div>
@@ -2246,7 +2327,7 @@ function overlaySvg(ends) {
   for (const b of selBlocks()) {
     s += `<rect x="${b.x - 3 / k}" y="${b.y - 3 / k}" width="${b.w + 6 / k}" height="${b.h + 6 / k}" fill="none" stroke="#2563eb" stroke-width="${1.2 / k}" stroke-dasharray="${4 / k} ${3 / k}" pointer-events="none"/>`;
     if (sel.size === 1) {
-      const hs = 8 / k;
+      const hs = (isTouchUI() ? 13 : 8) / k;
       const pts = { nw: [0, 0], n: [0.5, 0], ne: [1, 0], e: [1, 0.5], se: [1, 1], s: [0.5, 1], sw: [0, 1], w: [0, 0.5] };
       for (const [h, [fx, fy]] of Object.entries(pts)) {
         s += `<rect class="h-${h}" data-handle="${h}" data-block="${esc(b.id)}" x="${f1(b.x + b.w * fx - hs / 2)}" y="${f1(b.y + b.h * fy - hs / 2)}" width="${hs}" height="${hs}" fill="#fff" stroke="#2563eb" stroke-width="${1.2 / k}"/>`;
@@ -2260,14 +2341,14 @@ function overlaySvg(ends) {
       for (let i = 0; i < g.pts.length - 1; i++) {
         const A = g.pts[i], B = g.pts[i + 1], L = dist(A, B);
         if (L * k < 28) continue;
-        const horiz = Math.abs(A.y - B.y) < EPS, gl = 14 / k, gw = 6 / k;
+        const horiz = Math.abs(A.y - B.y) < EPS, gl = (isTouchUI() ? 22 : 14) / k, gw = (isTouchUI() ? 10 : 6) / k;
         const w = horiz ? gl : gw, h = horiz ? gw : gl;
         s += `<rect class="seg-grip ${horiz ? 'seg-h' : 'seg-v'}" data-link="${esc(l.id)}" data-seg="${i}" x="${f1((A.x + B.x) / 2 - w / 2)}" y="${f1((A.y + B.y) / 2 - h / 2)}" width="${f1(w)}" height="${f1(h)}" rx="${f1(gw / 2)}" fill="#fff" stroke="#2563eb" stroke-width="${1.2 / k}"/>`;
       }
     }
     for (const which of ['from', 'to']) {
       const p = e[which];
-      s += `<circle class="end-handle" data-link="${esc(l.id)}" data-end="${which}" cx="${f1(p.x)}" cy="${f1(p.y)}" r="${5.5 / k}" fill="${p.block ? '#fff' : '#fde68a'}" stroke="#2563eb" stroke-width="${1.5 / k}"/>`;
+      s += `<circle class="end-handle" data-link="${esc(l.id)}" data-end="${which}" cx="${f1(p.x)}" cy="${f1(p.y)}" r="${(isTouchUI() ? 10 : 5.5) / k}" fill="${p.block ? '#fff' : '#fde68a'}" stroke="#2563eb" stroke-width="${1.5 / k}"/>`;
     }
   }
   if (drag && drag.type === 'newLink' && drag.moved) {
@@ -2353,11 +2434,16 @@ function attachTarget(b, p) {
 let lastDown = { t: 0, x: 0, y: 0 };
 function isDoubleDown(e) {
   const now = performance.now();
-  const dbl = now - lastDown.t < 400 && Math.hypot(e.clientX - lastDown.x, e.clientY - lastDown.y) < 6;
+  const dbl = now - lastDown.t < 400 && Math.hypot(e.clientX - lastDown.x, e.clientY - lastDown.y) < (e.pointerType === 'touch' ? 24 : 6);
   lastDown = dbl ? { t: 0, x: 0, y: 0 } : { t: now, x: e.clientX, y: e.clientY };
   return dbl;
 }
 svg.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch') {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touches.size === 2) { startPinch(); return; }
+    if (touches.size > 2) return;
+  }
   if (e.button === 0 && !spaceDown && !recording && isDoubleDown(e)) { e.preventDefault(); drag = null; onDoubleClick(e); return; }
   if (editingId) commitEditor();
   stage.focus({ preventScroll: true });
@@ -2372,6 +2458,7 @@ svg.addEventListener('pointerdown', e => {
   if (modelSel) { modelSel = null; refreshLeft(); }
   const t = e.target;
   const mod = e.ctrlKey || e.metaKey;
+  const connect = e.shiftKey || connectMode;
 
   if (recording) {
     const el = t.closest('[data-ref],[data-block],[data-link]');
@@ -2388,7 +2475,7 @@ svg.addEventListener('pointerdown', e => {
   const endEl = t.closest('[data-end]');
   if (endEl) {
     const l = linkById(endEl.dataset.link), which = endEl.dataset.end;
-    if (e.shiftKey && l[which].block && bmap.has(l[which].block)) {
+    if (connect && l[which].block && bmap.has(l[which].block)) {
       drag = { type: 'newLink', from: bmap.get(l[which].block), p0: p, p, moved: false };
       return;
     }
@@ -2408,7 +2495,7 @@ svg.addEventListener('pointerdown', e => {
   const bEl = t.closest('[data-block]');
   if (bEl) {
     const b = bmap.get(bEl.dataset.block);
-    if (e.shiftKey) { drag = { type: 'newLink', from: b, p0: p, p, moved: false }; return; }
+    if (connect) { drag = { type: 'newLink', from: b, p0: p, p, moved: false }; return; }
     if (mod) { sel.has(b.id) ? sel.delete(b.id) : sel.add(b.id); refreshInspector(); render(); return; }
     if (!sel.has(b.id)) { sel = new Set([b.id]); refreshInspector(); }
     const ids = [...withChildren([...sel].filter(id => bmap.has(id)))];
@@ -2433,9 +2520,19 @@ svg.addEventListener('pointerdown', e => {
 });
 
 window.addEventListener('pointermove', e => {
+  if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (!drag) return;
   const p = toWorld(e);
   switch (drag.type) {
+    case 'pinch': {
+      if (touches.size < 2) return;
+      const [a, b] = [...touches.values()], r = svg.getBoundingClientRect();
+      const k = clamp(drag.k0 * Math.hypot(a.x - b.x, a.y - b.y) / drag.d0, 0.1, 5);
+      const mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
+      // the point between the fingers stays under them while they spread and move
+      view.k = k; view.x = mx - drag.wx * k; view.y = my - drag.wy * k;
+      render(); break;
+    }
     case 'pan':
       if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 3) return;
       if (!drag.moved) { drag.moved = true; stage.classList.add('dragpan'); }
@@ -2513,8 +2610,30 @@ window.addEventListener('pointermove', e => {
   }
 });
 
-window.addEventListener('pointerup', e => {
+/* Two fingers on the canvas: drop what the first one started and zoom / pan instead */
+const touches = new Map();
+function startPinch() {
+  if (drag && drag.snap && drag.moved) restore(drag.snap);
+  stage.classList.remove('dragpan');
+  const [a, b] = [...touches.values()], r = svg.getBoundingClientRect();
+  const mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
+  drag = { type: 'pinch', d0: Math.max(Math.hypot(a.x - b.x, a.y - b.y), 10), k0: view.k, wx: (mx - view.x) / view.k, wy: (my - view.y) / view.k };
+  lastDown = { t: 0, x: 0, y: 0 };
+  render();
+}
+window.addEventListener('pointercancel', e => {
+  touches.delete(e.pointerId);
   if (!drag) return;
+  if (drag.snap && drag.moved) restore(drag.snap);
+  drag = null;
+  stage.classList.remove('dragpan');
+  render();
+});
+window.addEventListener('pointerup', e => {
+  touches.delete(e.pointerId);
+  if (!drag) return;
+  // lifting one finger of a pinch ends it; the other finger does nothing until lifted
+  if (drag.type === 'pinch') { if (!touches.size) drag = null; return; }
   const d = drag;
   drag = null;
   switch (d.type) {
@@ -2854,6 +2973,13 @@ function startEdit(b) {
   const el = b.element && elById(b.element);
   if (b.element) edInner.textContent = el ? el.name : ''; else edInner.innerHTML = b.title;
   edBar.classList.toggle('plain', !!b.element);
+  if (isTouchUI()) {
+    // readable size, and in the top part of the canvas: the on-screen keyboard covers the rest
+    closeSheet();
+    const r = svg.getBoundingClientRect(), top = view.y + b.y * view.k;
+    if (view.k < 1) { view.k = 1; view.x = r.width / 2 - (b.x + b.w / 2); view.y = 56 - b.y; }
+    else if (top < 56 || top > r.height * 0.3) view.y += 56 - top;
+  }
   edWrap.hidden = false; edBar.hidden = false;
   doRender();
   edInner.focus();
@@ -3044,7 +3170,7 @@ function elementSection(el) {
   h += propsSection(el, 'eid');
   const rels = model.relationships.filter(r => r.source === el.id || r.target === el.id);
   h += `<h3>Model relations ${cntSpan(rels.length)}</h3>`;
-  if (!rels.length) h += `<div class="muted" style="font-size:12px">None. Shift + drag from this element to another one to relate them.</div>`;
+  if (!rels.length) h += `<div class="muted" style="font-size:12px">None. ${relateHow()} from this element to another one to relate them.</div>`;
   h += rels.map(r => {
     const out = r.source === el.id, o = elById(out ? r.target : r.source);
     const shown = doc.links.some(l => l.rel === r.id);
@@ -3089,10 +3215,14 @@ function viewSection() {
   h += `<div class="btns"><button class="btn" data-act="catalogs">Catalogs &amp; matrices</button><button class="btn" data-act="settings">Settings</button></div>`;
   h += `<h3>How to</h3>
     <ul class="tips">
-      <li>Pick an element type in the <b>Palette</b> (click, or drag it onto the canvas). <b>Double-click</b> the canvas to add another one of the same type.</li>
+      ${isTouchUI() ? `<li>Tap an element type under <b>Add</b>. <b>Double-tap</b> the canvas to add another one of the same type.</li>
+      <li>Turn on the <b>link button</b> (bottom right of the canvas) and drag from an element to another one, then choose the relationship. Only types valid in ArchiMate are offered.</li>
+      <li>Tap an element in the <b>Model</b> tab, then <b>Add to view</b>; its relationships with elements already here are drawn.</li>
+      <li>Drag with one finger to pan or move, pinch with two fingers to zoom.</li>
+      <li>The trash button in the toolbar removes from the view only; <b>Delete from model</b> is in the element's properties.</li>` : `<li>Pick an element type in the <b>Palette</b> (click, or drag it onto the canvas). <b>Double-click</b> the canvas to add another one of the same type.</li>
       <li><b>Shift + drag</b> from an element to another one, then choose the relationship. Only types valid in ArchiMate are offered.</li>
       <li>Drag an element from the <b>Model</b> tab to show it in this view; its relationships with elements already here are drawn.</li>
-      <li><b>Del</b> removes from the view only. <b>Ctrl/⌘ + Del</b> deletes from the model.</li>
+      <li><b>Del</b> removes from the view only. <b>Ctrl/⌘ + Del</b> deletes from the model.</li>`}
       <li>Blocks placed inside a grouping, node or location move with it.</li>
       <li>The <b>ADM</b> tab tracks phases, deliverables and the views of each phase.</li>
     </ul>
@@ -3213,7 +3343,7 @@ function connectorsSection(b) {
   const SO = { top: 0, right: 1, bottom: 2, left: 3 };
   items.sort((p, q) => SO[p.side] - SO[q.side] || p.t - q.t);
   let h = `<h3>Connectors <span style="text-transform:none;letter-spacing:0;font-weight:400">(${items.length})</span></h3>`;
-  if (!items.length) return h + `<div class="muted" style="font-size:12px">No links yet. Shift + drag from the block to add one.</div>`;
+  if (!items.length) return h + `<div class="muted" style="font-size:12px">No links yet. ${relateHow()} from the block to add one.</div>`;
   for (const it of items) {
     const end = it.l[it.w];
     const a = `data-t="conn" data-l="${esc(it.l.id)}" data-w="${it.w}"`;
@@ -3349,7 +3479,7 @@ inspector.addEventListener('click', e => {
     case 'gotoView': gotoView(btn.dataset.view, id); return;
     case 'pickModel': selectModel(id); return;
     case 'revealModel': selectModel(id); setLeftTab('model'); { const it = modelPanel.querySelector(`.tree-i[data-id="${CSS.escape(id)}"]`); if (it) it.scrollIntoView({ block: 'center' }); } return;
-    case 'addToView': { const el = elById(id); if (el) { addItemCenter(el.type, el); modelSel = id; refreshAll(); render(); } return; }
+    case 'addToView': { const el = elById(id); if (el) { if (compactMQ.matches) closeSheet(); addItemCenter(el.type, el); modelSel = id; refreshAll(); render(); } return; }
     case 'delModel': deleteFromModel([id]); return;
     case 'delModelSel': deleteFromModel(selectedModelIds()); return;
     case 'addProp': { const o = btn.dataset.eid ? elById(btn.dataset.eid) : relById(btn.dataset.rid); if (o) o.properties.push({ key: '', value: '' }); break; }
@@ -3653,6 +3783,39 @@ viewTabs.addEventListener('dblclick', e => {
 });
 
 /* =====================================================================
+   Compact layout (phones, small tablets) and touch
+   ===================================================================== */
+const compactMQ = matchMedia('(max-width: 900px)'), coarseMQ = matchMedia('(pointer: coarse)');
+function isTouchUI() { return coarseMQ.matches; }
+function relateHow() { return isTouchUI() ? 'Turn on the link button and drag' : 'Shift + drag'; }
+const SHEETS = { palette: 'Add to the view', model: 'Model', adm: 'ADM cycle', props: 'Properties', flows: 'Flows' };
+let sheet = null, connectMode = false;
+/* show one panel as a bottom sheet; the same button again hides it */
+function openSheet(name) {
+  if (name === sheet) name = null;
+  sheet = name;
+  const left = name === 'palette' || name === 'model' || name === 'adm', side = name === 'props' || name === 'flows';
+  if (left) setLeftTab(name);
+  if (side) setSideTab(name);
+  $('#left').classList.toggle('open', left);
+  $('#side').classList.toggle('open', side);
+  if (name) $(left ? '#left .sheet-title' : '#side .sheet-title').textContent = SHEETS[name];
+  for (const b of document.querySelectorAll('#mnav [data-m]')) { b.classList.toggle('on', b.dataset.m === name); b.setAttribute('aria-pressed', b.dataset.m === name); }
+}
+function closeSheet() { if (sheet) openSheet(sheet); }
+$('#mnav').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) openSheet(b.dataset.m); });
+for (const b of document.querySelectorAll('[data-sheet-close]')) b.addEventListener('click', closeSheet);
+compactMQ.addEventListener('change', () => { if (!compactMQ.matches) closeSheet(); });
+function setConnectMode(on) {
+  connectMode = on;
+  $('#connectBtn').setAttribute('aria-pressed', on);
+  svg.classList.toggle('shift', on);
+  updateHint();
+}
+$('#connectBtn').addEventListener('click', () => setConnectMode(!connectMode));
+coarseMQ.addEventListener('change', () => { refreshAll(); render(); });
+
+/* =====================================================================
    Left panel: palette, model browser, ADM
    ===================================================================== */
 const MIME_TYPE = 'application/x-archtogaf-type', MIME_EL = 'application/x-archtogaf-element';
@@ -3671,7 +3834,10 @@ function refreshLeft() {
 function updateHint() {
   // keep the double-click type inside the view's viewpoint
   if (curType !== 'note' && !viewpointAllows(doc.viewpoint, curType)) curType = Object.keys(ELEMENT_TYPES).find(t => viewpointAllows(doc.viewpoint, t)) || curType;
-  $('#hint').textContent = `Double-click: new ${curType === 'note' ? 'note' : typeName(curType)} · Shift + drag from an element: relationship · Double-click an element: rename`;
+  const what = curType === 'note' ? 'note' : typeName(curType);
+  $('#hint').textContent = connectMode ? 'Connect: drag from an element to another one. Tap the link button again to stop.'
+    : isTouchUI() ? `Double-tap: new ${what} or rename · Link button: relate elements · Pinch: zoom`
+    : `Double-click: new ${what} · Shift + drag from an element: relationship · Double-click an element: rename`;
 }
 
 function refreshPalette() {
@@ -3682,17 +3848,19 @@ function refreshPalette() {
     const types = Object.values(ELEMENT_TYPES).filter(t => t.layer === lk && viewpointAllows(vp, t.id));
     if (!types.length) continue;
     h += `<div class="pal-layer"><i style="background:${L.color}"></i>${esc(L.name)}</div><div class="pal-grid">`;
-    h += types.map(t => `<button class="pal-item${t.id === curType ? ' cur' : ''}" draggable="true" data-type="${t.id}" title="${esc(t.name)}" style="background:${typeColor(t.id)}">${typeGlyph(t.id, 18)}</button>`).join('');
-    if (lk === 'other') h += `<button class="pal-item${curType === 'note' ? ' cur' : ''}" draggable="true" data-type="note" title="Note (free text, not in the model)" style="background:#fffbea">${glyphSvg('note', 18)}</button>`;
+    h += types.map(t => `<button class="pal-item${t.id === curType ? ' cur' : ''}" draggable="true" data-type="${t.id}" title="${esc(t.name)}" style="background:${typeColor(t.id)}">${typeGlyph(t.id, 18)}<span class="pn">${esc(t.name)}</span></button>`).join('');
+    if (lk === 'other') h += `<button class="pal-item${curType === 'note' ? ' cur' : ''}" draggable="true" data-type="note" title="Note (free text, not in the model)" style="background:#fffbea">${glyphSvg('note', 18)}<span class="pn">Note</span></button>`;
     h += `</div>`;
   }
-  h += `<div class="pal-note" style="margin-top:14px">Click a type to add it to the view, or drag it onto the canvas. Double-click the canvas to add one more of the selected type.</div>`;
+  h += `<div class="pal-note" style="margin-top:14px">${isTouchUI() ? 'Tap a type to add it to the view. Double-tap the canvas to add one more of the selected type.' : 'Click a type to add it to the view, or drag it onto the canvas. Double-click the canvas to add one more of the selected type.'}</div>`;
   palettePanel.innerHTML = h;
 }
 palettePanel.addEventListener('click', e => {
   const b = e.target.closest('[data-type]');
   if (!b) return;
   curType = b.dataset.type;
+  // in the compact layout the sheet would hide the new element
+  if (compactMQ.matches) closeSheet();
   addItemCenter(curType);
 });
 palettePanel.addEventListener('dragstart', e => {
@@ -3747,7 +3915,10 @@ modelPanel.addEventListener('click', e => {
   const v = e.target.closest('[data-view]');
   if (v) { activateView(v.dataset.view); return; }
   const it = e.target.closest('.tree-i[data-id]');
-  if (it) selectModel(it.dataset.id);
+  if (!it) return;
+  selectModel(it.dataset.id);
+  // no drag and drop on touch: the properties sheet has "Add to view"
+  if (compactMQ.matches) openSheet('props');
 });
 modelPanel.addEventListener('dblclick', e => {
   const it = e.target.closest('.tree-i[data-id]'), el = it && elById(it.dataset.id);
@@ -4329,10 +4500,10 @@ window.addEventListener('keydown', e => {
   if (key === 'f') { fitView(); return; }
 });
 window.addEventListener('keyup', e => {
-  if (e.key === 'Shift') svg.classList.remove('shift');
+  if (e.key === 'Shift' && !connectMode) svg.classList.remove('shift');
   if (e.key === ' ') { spaceDown = false; stage.classList.remove('panning'); }
 });
-window.addEventListener('blur', () => { spaceDown = false; stage.classList.remove('panning'); svg.classList.remove('shift'); });
+window.addEventListener('blur', () => { spaceDown = false; stage.classList.remove('panning'); svg.classList.toggle('shift', connectMode); });
 window.addEventListener('resize', render);
 
 /* =====================================================================

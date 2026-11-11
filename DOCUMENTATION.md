@@ -18,7 +18,8 @@ It is one HTML file that runs in the browser, with no installation and no server
 - [13. Files, saving and export](#13-files-saving-and-export)
 - [14. Settings](#14-settings)
 - [15. Keyboard and mouse reference](#15-keyboard-and-mouse-reference)
-- [16. Tips and limitations](#16-tips-and-limitations)
+- [16. Phones and tablets](#16-phones-and-tablets)
+- [17. Tips and limitations](#17-tips-and-limitations)
 
 ---
 
@@ -498,7 +499,32 @@ To show an existing element in another view, either copy and paste it there, or 
 
 ---
 
-## 16. Tips and limitations
+## 16. Phones and tablets
+
+The tool also works on a phone or a tablet, including the online preview. Below 900 px wide the screen changes:
+
+- **The canvas takes the whole screen.** The panels open as sheets from a bar at the bottom: **Add** (the palette), **Model**, **ADM**, **Properties** and **Flows**. Tap the same button again, or the cross, to close the sheet. On a phone held sideways, the panels slide in from the left instead.
+- **The toolbar** shows icons only. On a phone it scrolls sideways; the zoom buttons are hidden because you pinch instead.
+
+With a finger:
+
+| Action | Gesture |
+|---|---|
+| Add an element | tap a type under **Add** (the sheet closes and the element appears in the middle) |
+| Add one more of the same type | double-tap the empty canvas |
+| Rename an element | double-tap it. The view zooms and scrolls so the element stays above the keyboard |
+| Move an element / pan the view | drag it / drag the empty canvas |
+| Zoom | pinch with two fingers |
+| Create a relationship | turn on the **link button** (bottom right of the canvas), drag from one element to another, pick the type; tap the link button again to stop |
+| Show an existing element in this view | tap it under **Model**, then **Add to this view** in its properties |
+| Remove from the view | select it, then the trash button in the toolbar |
+
+Not available by touch yet: selecting several items at once (box select, Ctrl/⌘ + click), dragging from the palette or the model browser, keyboard shortcuts and copy/paste. With connect mode on, tapping elements adds them to the selection, which is a way to select several.
+Files: phones cannot save a file in place. **Save** downloads the `.json` file, and **Open** picks one from the device. The work is also kept in the browser storage.
+
+---
+
+## 17. Tips and limitations
 
 - **Name things once and reuse them.** Drag existing elements from the Model tab instead of creating new ones with the same name. Duplicates make catalogs and matrices wrong.
 - **Look for unused elements.** Grey italic entries in the Model tab are in no view. Delete them or put them in a view.
